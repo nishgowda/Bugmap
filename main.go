@@ -75,7 +75,7 @@ func returnSingleIssue(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	db, err = gorm.Open("mysql", "root:2douglas@tcp(127.0.0.1:3306)/IssueTracker?charset=utf8&parseTime=True")
+	db, err = gorm.Open("mysql", "root:pword@tcp(127.0.0.1:3306)/IssueTracker?charset=utf8&parseTime=True")
 
 	if err != nil {
 		log.Println("Connection failed to open")
