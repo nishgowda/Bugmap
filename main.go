@@ -124,7 +124,6 @@ func Insert(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", 301)
 }
 
-<<<<<<< HEAD
 func Update(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	if r.Method == "POST" {
@@ -142,10 +141,6 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	http.Redirect(w, r, "/", 301)
 }
-=======
-func main() {
-	db, err = gorm.Open("mysql", "root:pword@tcp(127.0.0.1:3306)/IssueTracker?charset=utf8&parseTime=True")
->>>>>>> 0285abb81b16968b7595c6678cd87fa6e3c8217e
 
 func Delete(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
