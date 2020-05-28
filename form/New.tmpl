@@ -5,11 +5,34 @@
     <div class="container">
    <h2>New Issue</h2>  
     <form method="POST" action="insert">
-      <label> Name </label><input type="text" name="name" /><br />
-      <label> Description </label> 
-      <textarea class="form-control" rows="3" name="description"></textarea><br />
-      <label> Priority </label><input type="text" name="priority" /><br />
-      <input type="submit" class="primary" value="Save" />
+        <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="basic-addon1">Name</span>
+      </div>
+      <input type="text" class="form-control" placeholder="Name" aria-label="Username" aria-describedby="basic-addon1" name="name"><br />
+    </div>
+        <div class="input-group">
+    <div class="input-group-prepend">
+      <span class="input-group-text">Description</span>
+    </div>
+    <textarea class="form-control" aria-label="With textarea" name="description" rows="3"></textarea><br />
+  </div>
+      <div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <label class="input-group-text" for="inputGroupSelect01">Priority</label>
+  </div>
+  <select class="custom-select" id="inputGroupSelect01" name="priority">
+    <option selected >Choose...</option>
+    <option  value ="Low">Low</option>
+    <option value="Medium" >Medium</option>
+    <option value="High" >High</option>
+    <option  value="Critical">Critical</option>
+  </select><br />
+</div>
+
+    <div>
+      <input type="submit" class="btn btn-primary" value="Save" />
+      </div>
     </form>
     </center>
     <div>

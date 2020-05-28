@@ -1,0 +1,11 @@
+INSTRUCTIONS
+
+
+You must start your MySQL server and log into it by selecting your databse.
+
+
+
+TODO:
+    1. Make the UI look better
+    2. Add login route
+    3. Use OAuth

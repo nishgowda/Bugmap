@@ -7,16 +7,16 @@
     <table border="1" class="table">
       <thead>
       <tr>
-        <td>Name</td>
-        <td>Description</td>
-        <td>Priority</td>
-        <td>View</td>
-        <td>Edit</td>
-        <td>Delete</td>
+        <th scope="col">Name</th>
+        <th scope="col">Description</th>
+        <th scope="col">Priority</th>
+        <th scope="col">View</th>
+        <th scope="col">Edit</th>
+        <th scope="col">Delete</th>
       </tr>
        </thead>
        <tbody>
-    {{ range . }}
+    {{ range .  }}
       <tr>
         <td> {{ .Name }} </td>
         <td>{{ .Description }} </td> 
