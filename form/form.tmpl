@@ -1,0 +1,36 @@
+{{ define "Index" }}
+  {{ template "Header" }}
+    {{ template "Menu"  }}
+    <center>
+    <h2> All Issues </h2>
+    <div class="container">
+    <table border="1" class="table">
+      <thead>
+      <tr>
+        <td>Name</td>
+        <td>Description</td>
+        <td>Priority</td>
+        <td>View</td>
+        <td>Edit</td>
+        <td>Delete</td>
+      </tr>
+       </thead>
+       <tbody>
+    {{ range . }}
+      <tr>
+        <td> {{ .Name }} </td>
+        <td>{{ .Description }} </td> 
+        <td>{{ .Priority }} </td> 
+        <td><a href="/show?id={{ .Id }}">View</a></td>
+        <td><a href="/edit?id={{ .Id }}">Edit</a></td>
+        <td><a href="/delete?id={{ .Id }}">Delete</a><td>
+      </tr>
+    {{ end }}
+       </tbody>
+    </table>
+
+    </center>
+    </div>
+
+  {{ template "Footer" }}
+{{ end }}

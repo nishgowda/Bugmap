@@ -1,0 +1,17 @@
+{{ define "New" }}
+  {{ template "Header" }}
+    {{ template "Menu" }} 
+    <center>
+    <div class="container">
+   <h2>New Issue</h2>  
+    <form method="POST" action="insert">
+      <label> Name </label><input type="text" name="name" /><br />
+      <label> Description </label> 
+      <textarea class="form-control" rows="3" name="description"></textarea><br />
+      <label> Priority </label><input type="text" name="priority" /><br />
+      <input type="submit" class="primary" value="Save" />
+    </form>
+    </center>
+    <div>
+  {{ template "Footer" }}
+{{ end }}

@@ -1,88 +1,168 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
+	"database/sql"
 	"log"
 	"net/http"
-	"strconv"
+	"text/template"
 
-	"github.com/gorilla/mux"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	_ "github.com/go-sql-driver/mysql"
 )
 
-var db *gorm.DB
-var err error
-
-type Issue struct {
-	Id          int    `json:"id"`
-	Name        string `json:"name"`
-	Description string `json:"description"`
-	Priority    string `json:"priority"`
+type Issues struct {
+	Id          int
+	Name        string
+	Description string
+	Priority    string
 }
 
-func homePage(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to HomePage!")
-	fmt.Println("Endpoint Hit: HomePage")
-}
-func handleRequests() {
-	myRouter := mux.NewRouter().StrictSlash(true)
-	myRouter.HandleFunc("/", homePage)
-	myRouter.HandleFunc("/all-issues", returnAllIssues)
-	myRouter.HandleFunc("/new-issue", createNewIssue).Methods("POST")
-	myRouter.HandleFunc("/issue/{id}", returnSingleIssue)
-	log.Println("Starting development server at http://127.0.0.1:10000/")
-	log.Println("Quit the server with CONTROL-C.")
-	log.Fatal(http.ListenAndServe(":10000", myRouter))
-}
-
-func returnAllIssues(w http.ResponseWriter, r *http.Request) {
-	issues := []Issue{}
-	db.Find(&issues)
-	fmt.Println("Endpoint Hit: returnAllIssues")
-	json.NewEncoder(w).Encode(issues)
-}
-func createNewIssue(w http.ResponseWriter, r *http.Request) {
-	// get the body of our POST request
-	// return the string response containing the request body
-	reqBody, _ := ioutil.ReadAll(r.Body)
-	var issue Issue
-	json.Unmarshal(reqBody, &issue)
-	db.Create(&issue)
-	fmt.Println("Endpoint Hit: Creating New Issue")
-	json.NewEncoder(w).Encode(issue)
-}
-
-func returnSingleIssue(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	key := vars["id"]
-	issues := []Issue{}
-	db.Find(&issues)
-
-	for _, issue := range issues {
-		// string to int
-		s, err := strconv.Atoi(key)
-		if err == nil {
-			if issue.Id == s {
-				fmt.Println(issue)
-				fmt.Println("Endpoint Hit: Issue No:", key)
-				json.NewEncoder(w).Encode(issue)
-			}
-		}
+func dbConn() (db *sql.DB) {
+	dbDriver := "mysql"
+	dbUser := "root"
+	dbPass := "2douglas"
+	dbName := "IssueTracker"
+	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
+	if err != nil {
+		panic(err.Error())
 	}
+	return db
+}
+
+var tmpl = template.Must(template.ParseGlob("form/*"))
+
+func Index(w http.ResponseWriter, r *http.Request) {
+	db := dbConn()
+	selDB, err := db.Query("SELECT * FROM Issues ORDER BY id DESC")
+	if err != nil {
+		panic(err.Error())
+	}
+	emp := Issues{}
+	res := []Issues{}
+	for selDB.Next() {
+		var id int
+		var name, description, priority string
+		err = selDB.Scan(&id, &name, &description, &priority)
+		if err != nil {
+			panic(err.Error())
+		}
+		emp.Id = id
+		emp.Name = name
+		emp.Description = description
+		emp.Priority = priority
+		res = append(res, emp)
+	}
+	tmpl.ExecuteTemplate(w, "Index", res)
+	defer db.Close()
+}
+
+func Show(w http.ResponseWriter, r *http.Request) {
+	db := dbConn()
+	nId := r.URL.Query().Get("id")
+	selDB, err := db.Query("SELECT * FROM Issues WHERE id=?", nId)
+	if err != nil {
+		panic(err.Error())
+	}
+	emp := Issues{}
+	for selDB.Next() {
+		var id int
+		var name, description, priority string
+		err = selDB.Scan(&id, &name, &description, &priority)
+		if err != nil {
+			panic(err.Error())
+		}
+		emp.Id = id
+		emp.Name = name
+		emp.Description = description
+		emp.Priority = priority
+	}
+	tmpl.ExecuteTemplate(w, "Show", emp)
+	defer db.Close()
+}
+
+func New(w http.ResponseWriter, r *http.Request) {
+	tmpl.ExecuteTemplate(w, "New", nil)
+}
+
+func Edit(w http.ResponseWriter, r *http.Request) {
+	db := dbConn()
+	nId := r.URL.Query().Get("id")
+	selDB, err := db.Query("SELECT * FROM Issues WHERE id=?", nId)
+	if err != nil {
+		panic(err.Error())
+	}
+	emp := Issues{}
+	for selDB.Next() {
+		var id int
+		var name, description, priority string
+		err = selDB.Scan(&id, &name, &description, &priority)
+		if err != nil {
+			panic(err.Error())
+		}
+		emp.Id = id
+		emp.Name = name
+		emp.Description = description
+		emp.Priority = priority
+	}
+	tmpl.ExecuteTemplate(w, "Edit", emp)
+	defer db.Close()
+}
+
+func Insert(w http.ResponseWriter, r *http.Request) {
+	db := dbConn()
+	if r.Method == "POST" {
+		name := r.FormValue("name")
+		description := r.FormValue("description")
+		priority := r.FormValue("priority")
+		insForm, err := db.Prepare("INSERT INTO Issues(name, description, priority) VALUES(?,?,?)")
+		if err != nil {
+			panic(err.Error())
+		}
+		insForm.Exec(name, description, priority)
+		log.Println("INSERT: Name: " + name + " | Description: " + description + " | Priority: " + priority)
+	}
+	defer db.Close()
+	http.Redirect(w, r, "/", 301)
+}
+
+func Update(w http.ResponseWriter, r *http.Request) {
+	db := dbConn()
+	if r.Method == "POST" {
+		name := r.FormValue("name")
+		description := r.FormValue("description")
+		priority := r.FormValue("priority")
+		id := r.FormValue("uid")
+		insForm, err := db.Prepare("UPDATE Issues SET name=?, description=?, priority=? WHERE id=?")
+		if err != nil {
+			panic(err.Error())
+		}
+		insForm.Exec(name, description, priority, id)
+		log.Println("UPDATE: Name: " + name + " | Description: " + description + " | Priority: " + priority)
+	}
+	defer db.Close()
+	http.Redirect(w, r, "/", 301)
+}
+
+func Delete(w http.ResponseWriter, r *http.Request) {
+	db := dbConn()
+	emp := r.URL.Query().Get("id")
+	delForm, err := db.Prepare("DELETE FROM Issues WHERE id=?")
+	if err != nil {
+		panic(err.Error())
+	}
+	delForm.Exec(emp)
+	log.Println("DELETE")
+	defer db.Close()
+	http.Redirect(w, r, "/", 301)
 }
 
 func main() {
-	db, err = gorm.Open("mysql", "root:2douglas@tcp(127.0.0.1:3306)/IssueTracker?charset=utf8&parseTime=True")
-
-	if err != nil {
-		log.Println("Connection failed to open")
-	} else {
-		log.Println("Connection Established")
-	}
-
-	db.AutoMigrate(&Issue{})
-	handleRequests()
+	log.Println("Server started on: http://localhost:8080")
+	http.HandleFunc("/", Index)
+	http.HandleFunc("/show", Show)
+	http.HandleFunc("/new", New)
+	http.HandleFunc("/edit", Edit)
+	http.HandleFunc("/insert", Insert)
+	http.HandleFunc("/update", Update)
+	http.HandleFunc("/delete", Delete)
+	http.ListenAndServe(":8080", nil)
 }
