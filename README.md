@@ -14,8 +14,8 @@ go get github.com/nishgowda/Blips
 ## The Tech Stack:
 
 ### Backend:
-- Go
-- MySQL
+- Go REST API
+- MySQL Database
 
 ### Frontend: 
 - HTML
