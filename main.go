@@ -2,25 +2,55 @@ package main
 
 import (
 	"database/sql"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"text/template"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 )
 
+//Issues model
 type Issues struct {
 	Id          int
 	Name        string
 	Description string
 	Priority    string
+	Date        string
 }
 
+//ObtainDatabaseName obtains database credentials for the name of the database
+func ObtainDatabaseName() string {
+
+	file, er := os.Open("secretDbName.txt")
+	if er != nil {
+		log.Fatal(er)
+	}
+	defer file.Close()
+	b, er := ioutil.ReadAll(file)
+	dName := string(b)
+	return dName
+}
+
+//ObtainDatabasePassword obtains database credentials for the pword of the database
+func ObtainDatabasePassword() string {
+	files, ers := os.Open("secretDbPass.txt")
+	if ers != nil {
+		log.Fatal(ers)
+	}
+	defer files.Close()
+	body, ers := ioutil.ReadAll(files)
+	dPass := string(body)
+	return dPass
+}
 func dbConn() (db *sql.DB) {
+
 	dbDriver := "mysql"
 	dbUser := "root"
-	dbPass := "2douglas"
-	dbName := "IssueTracker"
+	dbPass := ObtainDatabaseName()
+	dbName := ObtainDatabasePassword()
 	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
 	if err != nil {
 		panic(err.Error())
@@ -28,8 +58,9 @@ func dbConn() (db *sql.DB) {
 	return db
 }
 
-var tmpl = template.Must(template.ParseGlob("form/*"))
+var tmpl = template.Must(template.ParseGlob("public/*"))
 
+//Index routes to index template, returns all available issues
 func Index(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	selDB, err := db.Query("SELECT * FROM Issues ORDER BY id DESC")
@@ -40,8 +71,8 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	res := []Issues{}
 	for selDB.Next() {
 		var id int
-		var name, description, priority string
-		err = selDB.Scan(&id, &name, &description, &priority)
+		var name, description, priority, date string
+		err = selDB.Scan(&id, &name, &description, &priority, &date)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -49,12 +80,14 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		emp.Name = name
 		emp.Description = description
 		emp.Priority = priority
+		emp.Date = date
 		res = append(res, emp)
 	}
 	tmpl.ExecuteTemplate(w, "Index", res)
 	defer db.Close()
 }
 
+// Show is a function that routes to View template
 func Show(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	nId := r.URL.Query().Get("id")
@@ -65,8 +98,8 @@ func Show(w http.ResponseWriter, r *http.Request) {
 	emp := Issues{}
 	for selDB.Next() {
 		var id int
-		var name, description, priority string
-		err = selDB.Scan(&id, &name, &description, &priority)
+		var name, description, priority, date string
+		err = selDB.Scan(&id, &name, &description, &priority, &date)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -74,15 +107,18 @@ func Show(w http.ResponseWriter, r *http.Request) {
 		emp.Name = name
 		emp.Description = description
 		emp.Priority = priority
+		emp.Date = date
 	}
 	tmpl.ExecuteTemplate(w, "Show", emp)
 	defer db.Close()
 }
 
+// New is a router to create a new Blip
 func New(w http.ResponseWriter, r *http.Request) {
 	tmpl.ExecuteTemplate(w, "New", nil)
 }
 
+// Edit is a route to UPDATE an existing Blip
 func Edit(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	nId := r.URL.Query().Get("id")
@@ -93,8 +129,8 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 	emp := Issues{}
 	for selDB.Next() {
 		var id int
-		var name, description, priority string
-		err = selDB.Scan(&id, &name, &description, &priority)
+		var name, description, priority, date string
+		err = selDB.Scan(&id, &name, &description, &priority, &date)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -102,28 +138,32 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 		emp.Name = name
 		emp.Description = description
 		emp.Priority = priority
+		emp.Date = date
 	}
 	tmpl.ExecuteTemplate(w, "Edit", emp)
 	defer db.Close()
 }
 
+// Insert is a router function that creates the new Blip
 func Insert(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	if r.Method == "POST" {
 		name := r.FormValue("name")
 		description := r.FormValue("description")
 		priority := r.FormValue("priority")
-		insForm, err := db.Prepare("INSERT INTO Issues(name, description, priority) VALUES(?,?,?)")
+		date := time.Now().Format("01-02-2006 15:04")
+		insForm, err := db.Prepare("INSERT INTO Issues(name, description, priority, date) VALUES(?,?,?,?)")
 		if err != nil {
 			panic(err.Error())
 		}
-		insForm.Exec(name, description, priority)
-		log.Println("INSERT: Name: " + name + " | Description: " + description + " | Priority: " + priority)
+		insForm.Exec(name, description, priority, date)
+		log.Println("INSERT: Name: " + name + " | Description: " + description + " | Priority: " + priority + " | Date: " + date)
 	}
 	defer db.Close()
 	http.Redirect(w, r, "/", 301)
 }
 
+// Update is the router function that updates an existing Blip in the database
 func Update(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	if r.Method == "POST" {
@@ -131,17 +171,19 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		description := r.FormValue("description")
 		priority := r.FormValue("priority")
 		id := r.FormValue("uid")
-		insForm, err := db.Prepare("UPDATE Issues SET name=?, description=?, priority=? WHERE id=?")
+		date := time.Now().Format("01-02-2006 15:04")
+		insForm, err := db.Prepare("UPDATE Issues SET name=?, description=?, priority=?, date=? WHERE id=?")
 		if err != nil {
 			panic(err.Error())
 		}
-		insForm.Exec(name, description, priority, id)
-		log.Println("UPDATE: Name: " + name + " | Description: " + description + " | Priority: " + priority)
+		insForm.Exec(name, description, priority, date, id)
+		log.Println("UPDATE: Name: " + name + " | Description: " + description + " | Priority: " + priority + " | Date: " + date)
 	}
 	defer db.Close()
 	http.Redirect(w, r, "/", 301)
 }
 
+// Delete is a function that removes the Blip from the database
 func Delete(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	emp := r.URL.Query().Get("id")

@@ -3,7 +3,7 @@
     {{ template "Menu" }} 
     <center>
     <div class="container">
-   <h2>Edit Issue</h2>  
+   <h2>Edit Blip</h2>  
     <form method="POST" action="update">
       <input type="hidden" name="uid" value="{{ .Id }}" />
       <div class="input-group mb-3">
@@ -18,12 +18,19 @@
     </div>
     <textarea class="form-control" aria-label="With textarea" name="description"  value="{{ .Description }}" rows="3" ></textarea><br />
   </div>
-      <div class="input-group mb-3">
-      <div class="input-group-prepend">
-        <span class="input-group-text" id="basic-addon1">Priority</span>
-      </div>
-      <input type="text" class="form-control" placeholder="Priority" aria-label="Username" aria-describedby="basic-addon1" value="{{ .Priority }}" name="priority" ><br />
-    </div>
+  <div>
+        <div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <label class="input-group-text" for="inputGroupSelect01">Priority</label>
+  </div>
+  <select class="custom-select" id="inputGroupSelect01" name="priority" value="{{ .Priority }}" required>
+    <option value="" selected disabled hidden>Choose here</option>
+    <option  value ="Low" >Low</option>
+    <option value="Medium" >Medium</option>
+    <option value="High" >High</option>
+    <option  value="Critical">Critical</option>
+  </select><br />
+</div>
   <div>
       <input type="submit" class="btn btn-primary" value="Save" />
       </div>

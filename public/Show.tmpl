@@ -3,10 +3,10 @@
     {{ template "Menu"  }}
     <div class="container">
     <center>
-    <h2> Register {{ .Id }} </h2>
-      <p>Name: {{ .Name }}</p>
+    <h2> Name: {{ .Name }} </h2>
       <p>Description:  {{ .Description }}</p>
       <p>Priority:  {{ .Priority }}</p>
+       <p>Date:  {{ .Date }}</p>
       <br /> <a href="/edit?id={{ .Id }}">Edit</a></p>
       </center>
     </div>
