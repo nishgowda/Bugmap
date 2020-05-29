@@ -49,13 +49,8 @@ func dbConn() (db *sql.DB) {
 
 	dbDriver := "mysql"
 	dbUser := "root"
-<<<<<<< HEAD
 	dbPass := ObtainDatabaseName()
 	dbName := ObtainDatabasePassword()
-=======
-	dbPass := "dbPass"
-	dbName := "dbName"
->>>>>>> 2359bb42d8a77068e8342f69d9912029dca0cec7
 	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
 	if err != nil {
 		panic(err.Error())
