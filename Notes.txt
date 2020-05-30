@@ -1,11 +1,32 @@
 INSTRUCTIONS
 
+LOOK UP:
+Multiple users on site cannot share the same database. Nested databses then?
 
 You must start your MySQL server and log into it by selecting your databse.
+MySQL command to access databse: /usr/local/mysql/bin/mysql -uroot -p
 
-
-
+IDEAS:
+    Search command for issues (look through static overflow for potential solutions)
+    - Auto detect bugs from comiler in terminal...
 TODO:
     1. Make the UI look better
     2. Add login route
     3. Use OAuth
+
+
+USERS:
+    UID
+    IP OR USERNAME
+
+example setup:
+
+1. Parent table Automobile {Auto ID} 
+     Child tables 
+     1. Car {Auto ID,CarID}
+     2. Truck {Auto ID,Trucks ID}
+     3. Bus {Auto ID,BusID}
+
+SECURITY:
+    JWT
+    OAuth

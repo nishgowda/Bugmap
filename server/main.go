@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -21,10 +22,16 @@ type Issues struct {
 	Date        string
 }
 
+type Users struct {
+	Uid      int
+	Username string
+	Password string
+}
+
 //ObtainDatabaseName obtains database credentials for the name of the database
 func ObtainDatabaseName() string {
 
-	file, er := os.Open("secretDbName.txt")
+	file, er := os.Open("../secretDbName.txt")
 	if er != nil {
 		log.Fatal(er)
 	}
@@ -36,7 +43,7 @@ func ObtainDatabaseName() string {
 
 //ObtainDatabasePassword obtains database credentials for the pword of the database
 func ObtainDatabasePassword() string {
-	files, ers := os.Open("secretDbPass.txt")
+	files, ers := os.Open("../secretDbPass.txt")
 	if ers != nil {
 		log.Fatal(ers)
 	}
@@ -49,8 +56,8 @@ func dbConn() (db *sql.DB) {
 
 	dbDriver := "mysql"
 	dbUser := "root"
-	dbPass := ObtainDatabaseName()
-	dbName := ObtainDatabasePassword()
+	dbPass := ObtainDatabasePassword()
+	dbName := ObtainDatabaseName()
 	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
 	if err != nil {
 		panic(err.Error())
@@ -58,7 +65,28 @@ func dbConn() (db *sql.DB) {
 	return db
 }
 
-var tmpl = template.Must(template.ParseGlob("public/*"))
+var tmpl = template.Must(template.ParseGlob("../views/*"))
+
+func Login(w http.ResponseWriter, r *http.Request) {
+	tmpl.ExecuteTemplate(w, "Login", nil)
+}
+
+func Register(w http.ResponseWriter, r *http.Request) {
+	db := dbConn()
+	fmt.Println("Working?")
+	if r.Method == "POST" {
+		r.ParseForm()
+		username, password := r.PostFormValue("username"), r.PostFormValue("password")
+		insForm, err := db.Prepare("INSERT INTO Users(username, password) VALUES(?,?)")
+		if err != nil {
+			panic(err.Error())
+		}
+		insForm.Exec(username, password)
+		log.Println("INSERT: Username: " + username + " | Password: " + password)
+	}
+	defer db.Close()
+	http.Redirect(w, r, "/index", 301)
+}
 
 //Index routes to index template, returns all available issues
 func Index(w http.ResponseWriter, r *http.Request) {
@@ -91,6 +119,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 func Show(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	nId := r.URL.Query().Get("id")
+
 	selDB, err := db.Query("SELECT * FROM Issues WHERE id=?", nId)
 	if err != nil {
 		panic(err.Error())
@@ -122,6 +151,7 @@ func New(w http.ResponseWriter, r *http.Request) {
 func Edit(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	nId := r.URL.Query().Get("id")
+	fmt.Println(r.Method)
 	selDB, err := db.Query("SELECT * FROM Issues WHERE id=?", nId)
 	if err != nil {
 		panic(err.Error())
@@ -148,9 +178,8 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 func Insert(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	if r.Method == "POST" {
-		name := r.FormValue("name")
-		description := r.FormValue("description")
-		priority := r.FormValue("priority")
+		r.ParseForm()
+		name, description, priority := r.PostFormValue("name"), r.PostFormValue("description"), r.PostFormValue("priority")
 		date := time.Now().Format("01-02-2006 15:04")
 		insForm, err := db.Prepare("INSERT INTO Issues(name, description, priority, date) VALUES(?,?,?,?)")
 		if err != nil {
@@ -167,9 +196,8 @@ func Insert(w http.ResponseWriter, r *http.Request) {
 func Update(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	if r.Method == "POST" {
-		name := r.FormValue("name")
-		description := r.FormValue("description")
-		priority := r.FormValue("priority")
+		r.ParseForm()
+		name, description, priority := r.PostFormValue("name"), r.PostFormValue("description"), r.PostFormValue("priority")
 		id := r.FormValue("uid")
 		date := time.Now().Format("01-02-2006 15:04")
 		insForm, err := db.Prepare("UPDATE Issues SET name=?, description=?, priority=?, date=? WHERE id=?")
@@ -187,6 +215,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 func Delete(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	emp := r.URL.Query().Get("id")
+	fmt.Println(r.Method)
 	delForm, err := db.Prepare("DELETE FROM Issues WHERE id=?")
 	if err != nil {
 		panic(err.Error())
@@ -196,15 +225,16 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	http.Redirect(w, r, "/", 301)
 }
-
 func main() {
 	log.Println("Server started on: http://localhost:8080")
-	http.HandleFunc("/", Index)
-	http.HandleFunc("/show", Show)
-	http.HandleFunc("/new", New)
-	http.HandleFunc("/edit", Edit)
-	http.HandleFunc("/insert", Insert)
-	http.HandleFunc("/update", Update)
-	http.HandleFunc("/delete", Delete)
+	http.HandleFunc("/", (Login))
+	http.HandleFunc("/login", (Register))
+	http.HandleFunc("/index", (Index))
+	http.HandleFunc("/show", (Show))
+	http.HandleFunc("/new", (New))
+	http.HandleFunc("/edit", (Edit))
+	http.HandleFunc("/insert", (Insert))
+	http.HandleFunc("/update", (Update))
+	http.HandleFunc("/delete", (Delete))
 	http.ListenAndServe(":8080", nil)
 }
