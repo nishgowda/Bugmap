@@ -11,6 +11,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"golang.org/x/crypto/bcrypt"
 )
 
 //Issues model
@@ -82,17 +83,25 @@ var singedIn = false
 func Home(w http.ResponseWriter, r *http.Request) {
 	tmpl.ExecuteTemplate(w, "Login", nil)
 }
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
 
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
 func Login(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	if r.Method == "POST" {
 		r.ParseForm()
 		username, password := r.PostFormValue("username"), r.PostFormValue("password")
+		ogPassword := password
 		selDb, err := db.Query("SELECT uid, username, password FROM USERS WHERE username=?", username)
 		if err != nil {
-			fmt.Println(err.Error)
+			http.Redirect(w, r, "/", 301)
 		}
-		fmt.Println("dasdasda")
 		emp := Users{}
 		res := []Users{}
 		for selDb.Next() {
@@ -101,14 +110,22 @@ func Login(w http.ResponseWriter, r *http.Request) {
 				panic(err.Error())
 			}
 			emp.Uid = uid
-			res = append(res, emp)
+			emp.Password = password
+			emp.Username = username
+			if uid != 0 {
+				if CheckPasswordHash(ogPassword, emp.Password) == true {
+					res = append(res, emp)
+					//fmt.Println(emp.Password)
+					fmt.Println("succesfully logged in as " + username)
+				} else {
+					http.Redirect(w, r, "/", 301) // ---> Figure out a work around for this superfluous response.WriteHeader call from main.Login (main.go:129)
+				}
+			}
+
 		}
-		fmt.Println("Succesfully logged in as " + username)
+
 	}
 	defer db.Close()
-
-	fmt.Println(uid)
-
 	http.Redirect(w, r, "/dashboard", 301)
 }
 
@@ -128,9 +145,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Println(err.Error)
 		}
-		insForm.Exec(username, password)
-		log.Println("INSERT: Username: " + username + " | Password: " + password)
-
+		hash, _ := HashPassword(password)
+		insForm.Exec(username, hash)
+		log.Println("INSERT: Username: " + username + " | Password: " + string(hash))
 	}
 
 	defer db.Close()
@@ -159,7 +176,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			emp.Description = description
 			res = append(res, emp)
 		}
-		fmt.Println(uid)
+		//fmt.Println(uid)
 		tmpl.ExecuteTemplate(w, "Dashboard", res)
 		defer db.Close()
 	} else {
@@ -349,8 +366,8 @@ func Index(w http.ResponseWriter, r *http.Request) {
 			emp.Date = date
 			res = append(res, emp)
 		}
-		fmt.Print("user id is ")
-		fmt.Println(uid)
+		//fmt.Print("user id is ")
+		//fmt.Println(uid)
 		tmpl.ExecuteTemplate(w, "Index", res)
 		defer db.Close()
 	} else {
