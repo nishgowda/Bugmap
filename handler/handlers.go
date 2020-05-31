@@ -14,6 +14,8 @@ func handler() {
 	http.HandleFunc("/login", controllers.Login)
 	http.HandleFunc("/signup", controllers.SingUpPage)
 	http.HandleFunc("/register", controllers.Register)
+	http.HandleFunc("/logoutpage", controllers.LogoutPage)
+	http.HandleFunc("/logout", controllers.Logout)
 	http.HandleFunc("/dashboard", controllers.Dashboard)
 	http.HandleFunc("/bugs", controllers.DisplayIssues)
 	http.HandleFunc("/showproject", controllers.ShowProject)

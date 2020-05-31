@@ -93,6 +93,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 					res = append(res, emp)
 					//fmt.Println(emp.Password)
 					fmt.Println("succesfully logged in as " + username)
+					singedIn = true
 				} else {
 					http.Redirect(w, r, "/", 301) // ---> Figure out a work around for this superfluous response.WriteHeader call from main.Login (main.go:129)
 				}
@@ -105,9 +106,15 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/dashboard", 301)
 }
 
-func Logout(w http.ResponseWriter, r *http.Request) {
-	uid = 0
+func LogoutPage(w http.ResponseWriter, r *http.Request) {
+	tmpl.ExecuteTemplate(w, "Logout", nil)
 }
+
+func Logout(w http.ResponseWriter, r *http.Request) {
+	singedIn = false
+	http.Redirect(w, r, "/", 301)
+}
+
 func SingUpPage(w http.ResponseWriter, r *http.Request) {
 	tmpl.ExecuteTemplate(w, "Register", nil)
 }
@@ -131,7 +138,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func Dashboard(w http.ResponseWriter, r *http.Request) {
-	if uid != 0 {
+	if singedIn != false {
 		db := dbConn()
 		selDB, err := db.Query("SELECT * FROM Projects WHERE user_id=? ORDER BY id DESC", uid)
 		if err != nil {
@@ -164,7 +171,7 @@ func NewProject(w http.ResponseWriter, r *http.Request) {
 	tmpl.ExecuteTemplate(w, "NewProject", nil)
 }
 func InsertProject(w http.ResponseWriter, r *http.Request) {
-	if uid != 0 {
+	if singedIn != false {
 		db := dbConn()
 		if r.Method == "POST" {
 			r.ParseForm()
@@ -184,7 +191,7 @@ func InsertProject(w http.ResponseWriter, r *http.Request) {
 }
 
 func ShowProject(w http.ResponseWriter, r *http.Request) {
-	if uid != 0 {
+	if singedIn != false {
 		db := dbConn()
 		nId := r.URL.Query().Get("id")
 		selDB, err := db.Query("SELECT * FROM Projects WHERE id=? and user_id=?", nId, uid)
@@ -214,7 +221,7 @@ func ShowProject(w http.ResponseWriter, r *http.Request) {
 }
 
 func EditProject(w http.ResponseWriter, r *http.Request) {
-	if uid != 0 {
+	if singedIn != false {
 		db := dbConn()
 		nId := r.URL.Query().Get("id")
 		fmt.Println(r.Method)
@@ -243,7 +250,7 @@ func EditProject(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateProject(w http.ResponseWriter, r *http.Request) {
-	if uid != 0 {
+	if singedIn != false {
 		db := dbConn()
 		if r.Method == "POST" {
 			r.ParseForm()
@@ -264,7 +271,7 @@ func UpdateProject(w http.ResponseWriter, r *http.Request) {
 
 }
 func DeleteProject(w http.ResponseWriter, r *http.Request) {
-	if uid != 0 {
+	if singedIn != false {
 		db := dbConn()
 		emp := r.URL.Query().Get("id")
 		fmt.Println(r.Method)
@@ -283,7 +290,7 @@ func DeleteProject(w http.ResponseWriter, r *http.Request) {
 }
 
 func DisplayIssues(w http.ResponseWriter, r *http.Request) {
-	if uid != 0 {
+	if singedIn != false {
 		db := dbConn()
 		selDB, err := db.Query("SELECT * FROM Issues WHERE user_id=? ORDER BY id DESC", uid)
 		if err != nil {
@@ -318,7 +325,7 @@ func DisplayIssues(w http.ResponseWriter, r *http.Request) {
 
 //Index routes to index template, returns all available issues
 func Index(w http.ResponseWriter, r *http.Request) {
-	if uid != 0 {
+	if singedIn != false {
 		db := dbConn()
 		selDB, err := db.Query("SELECT * FROM Issues WHERE project_id=? and user_id=? ORDER BY id DESC", project_id, uid)
 		if err != nil {
@@ -354,7 +361,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 
 // Show is a function that routes to View template
 func Show(w http.ResponseWriter, r *http.Request) {
-	if uid != 0 {
+	if singedIn != false {
 		db := dbConn()
 		nId := r.URL.Query().Get("id")
 		fmt.Println(nId)
@@ -392,7 +399,7 @@ func New(w http.ResponseWriter, r *http.Request) {
 
 // Edit is a route to UPDATE an existing Blip
 func Edit(w http.ResponseWriter, r *http.Request) {
-	if uid != 0 {
+	if singedIn != false {
 		db := dbConn()
 		nId := r.URL.Query().Get("id")
 		fmt.Println(r.Method)
@@ -425,7 +432,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 
 // Insert is a router function that creates the new Blip
 func Insert(w http.ResponseWriter, r *http.Request) {
-	if uid != 0 {
+	if singedIn != false {
 		db := dbConn()
 		if r.Method == "POST" {
 			r.ParseForm()
@@ -447,7 +454,7 @@ func Insert(w http.ResponseWriter, r *http.Request) {
 
 // Update is the router function that updates an existing Blip in the database
 func Update(w http.ResponseWriter, r *http.Request) {
-	if uid != 0 {
+	if singedIn != false {
 		db := dbConn()
 		if r.Method == "POST" {
 			r.ParseForm()
@@ -470,7 +477,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 
 // Delete is a function that removes the Blip from the database
 func Delete(w http.ResponseWriter, r *http.Request) {
-	if uid != 0 {
+	if singedIn != false {
 		db := dbConn()
 		emp := r.URL.Query().Get("id")
 		fmt.Println(r.Method)

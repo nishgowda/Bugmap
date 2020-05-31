@@ -1,0 +1,12 @@
+{{ define "Logout" }}
+  {{ template "Header" }}
+    <center>
+    <div class="container">
+   <h2>Logout</h2>  
+    <form method="POST" action="logout">
+      <a href="/logout">Click to logout </a>
+    </form>
+    </center>
+    <div>
+  {{ template "Footer" }}
+{{ end }}
