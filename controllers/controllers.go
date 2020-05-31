@@ -1,45 +1,20 @@
-package main
+package controllers
 
 import (
 	"database/sql"
 	"fmt"
+	"html/template"
 	"io/ioutil"
 	"log"
+	"models/models"
 	"net/http"
 	"os"
-	"text/template"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"golang.org/x/crypto/bcrypt"
 )
 
-//Issues model
-type Issues struct {
-	Id          int
-	Project_id  int
-	Name        string
-	Description string
-	Priority    string
-	Date        string
-	User_id     int
-}
-
-type Users struct {
-	Uid      int
-	Username string
-	Email    string
-	Password string
-}
-
-type Projects struct {
-	Id          int
-	UserId      int
-	ProjectName string
-	Description string
-}
-
-//ObtainDatabaseName obtains database credentials for the name of the database
 func ObtainDatabaseName() string {
 
 	file, er := os.Open("../secretDbName.txt")
@@ -103,8 +78,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Redirect(w, r, "/", 301)
 		}
-		emp := Users{}
-		res := []Users{}
+		emp := models.Users{}
+		res := []models.Users{}
 		for selDb.Next() {
 			err = selDb.Scan(&uid, &username, &password)
 			if err != nil {
@@ -162,8 +137,8 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err.Error())
 		}
-		emp := Projects{}
-		res := []Projects{}
+		emp := models.Projects{}
+		res := []models.Projects{}
 		for selDB.Next() {
 			var id, user_id int
 			var name, description string
@@ -216,7 +191,7 @@ func ShowProject(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err.Error())
 		}
-		emp := Projects{}
+		emp := models.Projects{}
 		for selDB.Next() {
 			var id, user_id int
 			var name, description string
@@ -247,7 +222,7 @@ func EditProject(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err.Error())
 		}
-		emp := Projects{}
+		emp := models.Projects{}
 		for selDB.Next() {
 			var id, user_id int
 			var name, description string
@@ -314,8 +289,8 @@ func DisplayIssues(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err.Error())
 		}
-		emp := Issues{}
-		res := []Issues{}
+		emp := models.Issues{}
+		res := []models.Issues{}
 		for selDB.Next() {
 			var id, user_id int
 			var name, description, priority, date string
@@ -349,8 +324,8 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err.Error())
 		}
-		emp := Issues{}
-		res := []Issues{}
+		emp := models.Issues{}
+		res := []models.Issues{}
 		for selDB.Next() {
 			var id, project_id, user_id int
 			var name, description, priority, date string
@@ -387,7 +362,7 @@ func Show(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err.Error())
 		}
-		emp := Issues{}
+		emp := models.Issues{}
 		for selDB.Next() {
 			var id, project_id, user_id int
 			var name, description, priority, date string
@@ -425,7 +400,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err.Error())
 		}
-		emp := Issues{}
+		emp := models.Issues{}
 		for selDB.Next() {
 			var id, project_id int
 			var name, description, priority, date string
@@ -510,28 +485,4 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.Redirect(w, r, "/", 301)
 	}
-}
-
-func main() {
-	log.Println("Server started on: http://localhost:8080")
-	http.HandleFunc("/", Home)
-	http.HandleFunc("/login", Login)
-	http.HandleFunc("/signup", SingUpPage)
-	http.HandleFunc("/register", Register)
-	http.HandleFunc("/dashboard", Dashboard)
-	http.HandleFunc("/bugs", DisplayIssues)
-	http.HandleFunc("/showproject", ShowProject)
-	http.HandleFunc("/newproject", NewProject)
-	http.HandleFunc("/editproject", EditProject)
-	http.HandleFunc("/insertproject", InsertProject)
-	http.HandleFunc("/updateproject", UpdateProject)
-	http.HandleFunc("/deleteproject", DeleteProject)
-	http.HandleFunc("/index", Index)
-	http.HandleFunc("/show", Show)
-	http.HandleFunc("/new", New)
-	http.HandleFunc("/edit", Edit)
-	http.HandleFunc("/insert", Insert)
-	http.HandleFunc("/update", Update)
-	http.HandleFunc("/delete", Delete)
-	http.ListenAndServe(":8080", nil)
 }
