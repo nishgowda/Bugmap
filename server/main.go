@@ -28,6 +28,7 @@ type Issues struct {
 type Users struct {
 	Uid      int
 	Username string
+	Email    string
 	Password string
 }
 
@@ -140,13 +141,13 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Working?")
 	if r.Method == "POST" {
 		r.ParseForm()
-		username, password := r.PostFormValue("username"), r.PostFormValue("password")
-		insForm, err := db.Prepare("INSERT INTO Users(username, password) VALUES(?,?)")
+		username, password, email := r.PostFormValue("username"), r.PostFormValue("password"), r.PostFormValue("email")
+		insForm, err := db.Prepare("INSERT INTO Users(username, password, email) VALUES(?,?, ?)")
 		if err != nil {
 			fmt.Println(err.Error)
 		}
 		hash, _ := HashPassword(password)
-		insForm.Exec(username, hash)
+		insForm.Exec(username, hash, email)
 		log.Println("INSERT: Username: " + username + " | Password: " + string(hash))
 	}
 
@@ -278,7 +279,7 @@ func UpdateProject(w http.ResponseWriter, r *http.Request) {
 				fmt.Println(err.Error())
 			}
 			insForm.Exec(name, description, id)
-			log.Println("UPDATE: Name: " + name + " | Description: " + description + " | Priority: ")
+			log.Println("UPDATE: Name: " + name + " | Description: " + description)
 		}
 		defer db.Close()
 		http.Redirect(w, r, "/dashboard", 301)
