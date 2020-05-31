@@ -1,10 +1,10 @@
-{{ define "Login" }}
+{{ define "Register" }}
   {{ template "Header" }}
     {{ template "Menu" }} 
     <center>
     <div class="container">
-   <h2>Login</h2>  
-    <form method="POST" action="login">
+   <h2>Register an Account</h2>  
+    <form method="POST" action="register">
         <div class="input-group mb-3">
       <div class="input-group-prepend">
         <span class="input-group-text" id="basic-addon1">Username</span>
@@ -22,7 +22,7 @@
       <input type="submit" class="btn btn-primary" value="Save" />
       </div>
 
-      <a href="/signup">Click to Register </a>
+      <a href="/login">Click to Register </a>
     </form>
     </center>
     <div>

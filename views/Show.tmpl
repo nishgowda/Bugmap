@@ -7,7 +7,7 @@
       <p>Description:  {{ .Description }}</p>
       <p>Priority:  {{ .Priority }}</p>
        <p>Date:  {{ .Date }}</p>
-      <br /> <a href="/edit?id={{ .Id }}">Edit</a></p>
+      <br /> <a href="/edit?id={{ .Id }}">Edit</a></p> <a href="/delete?id={{ .Id }}">Delete</a></p>
       </center>
     </div>
   {{ template "Footer" }}

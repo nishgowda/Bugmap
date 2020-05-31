@@ -1,5 +1,4 @@
 INSTRUCTIONS
-
 LOOK UP:
 Multiple users on site cannot share the same database. Nested databses then?
 
@@ -11,13 +10,13 @@ IDEAS:
     - Auto detect bugs from comiler in terminal...
 TODO:
     1. Make the UI look better
-    2. Add login route
-    3. Use OAuth
+    2. Add login route ~~~~ Use OAuth
+    3. 
 
 
 USERS:
     UID
-    IP OR USERNAME
+    USERNAME
 
 example setup:
 
@@ -30,3 +29,9 @@ example setup:
 SECURITY:
     JWT
     OAuth
+
+PARENT CHILD RELATIONSHIP EXAMPLE :
+https://www.hostingadvice.com/how-to/mysql-foreign-key-example/
+
+
+LOGIN DONE FOR NOW

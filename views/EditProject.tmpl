@@ -1,0 +1,28 @@
+{{ define "EditProject" }}
+  {{ template "Header" }}
+    {{ template "Menu" }} 
+    <center>
+    <div class="container">
+   <h2>Edit Project</h2>  
+    <form method="POST" action="updateproject">
+      <input type="hidden" name="uid" value="{{ .Id }}" />
+      <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="basic-addon1">Name</span>
+      </div>
+      <input type="text" class="form-control" placeholder="Name" aria-label="Username" aria-describedby="basic-addon1" value="{{ .Name }}" name="name" required><br />
+    </div>
+      <div class="input-group">
+    <div class="input-group-prepend">
+      <span class="input-group-text">Description</span>
+    </div>
+    <textarea class="form-control" aria-label="With textarea" name="description"  value="{{ .Description }}" rows="3"required ></textarea><br />
+  </div>
+  <div>
+      <input type="submit" class="btn btn-primary" value="Save" />
+      </div>
+    </form><br />    
+    </center>
+    </div>
+  {{ template "Footer" }}
+{{ end }}

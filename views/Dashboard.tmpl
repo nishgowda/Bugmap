@@ -1,0 +1,37 @@
+{{ define "Dashboard" }}
+  {{ template "Header" }}
+    {{ template "Menu"  }}
+    <center>
+    <h1> Your Projects </h1>
+    <div class="container">
+    <table class="table" >
+      <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Description</th>
+        <th scope="col">View</th>
+        <th scope="col">Edit</th>
+        <th scope="col">Resolve</th>
+      </tr>
+       </thead>
+       <tbody>
+    {{ range .  }}
+      <tr>
+        <td> {{ .Name }} </td>
+        <td>{{ .Description }} </td> 
+        <td><a href="/showproject?id={{ .Id }}">View</a></td>
+        <td><a href="/editproject?id={{ .Id }}">Edit</a></td>
+        <td><a href="/deleteproject?id={{ .Id }}">Resolve</a><td>
+      </tr>
+    {{ end }}
+       </tbody>
+    </table>
+    <button type="button" class="btn btn-primary"  onclick="window.location.href='/newproject';">New Project</button>
+    </center>
+    </div>
+
+  {{ template "Footer" }}
+{{ end }}
+
+
+
