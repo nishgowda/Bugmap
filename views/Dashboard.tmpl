@@ -2,7 +2,8 @@
   {{ template "Header" }}
     {{ template "Menu"  }}
     <center>
-    <h1> Your Projects </h1>
+    <h2> Your Projects </h2>
+    </center>
     <div class="container">
     <table class="table" >
       <thead>
@@ -17,7 +18,7 @@
        <tbody>
     {{ range .  }}
       <tr>
-        <td> {{ .Name }} </td>
+        <td> {{ .ProjectName }} </td>
         <td>{{ .Description }} </td> 
         <td><a href="/showproject?id={{ .Id }}">View</a></td>
         <td><a href="/editproject?id={{ .Id }}">Edit</a></td>
@@ -27,7 +28,6 @@
        </tbody>
     </table>
     <button type="button" class="btn btn-primary"  onclick="window.location.href='/newproject';">New Project</button>
-    </center>
     </div>
 
   {{ template "Footer" }}

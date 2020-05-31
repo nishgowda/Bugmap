@@ -3,7 +3,7 @@
     {{ template "Menu"  }}
     <div class="container">
     <center>
-    <h2> Name: {{ .Name }} </h2>
+    <h2> Name: {{ .ProjectName }} </h2>
       <p>Description:  {{ .Description }}</p>
       <br /> <a href="/editproject?id={{ .Id }}">Edit</a></p> <a href="/deleteproject?id={{ .Id }}">Delete</a></p>
        <button type="button" class="btn btn-primary"  onclick="window.location.href='/index';">View Issues</button>
