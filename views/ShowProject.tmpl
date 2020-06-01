@@ -4,8 +4,8 @@
     <div class="container">
     <center>
     <div>
-      <div class="card" style="width: 18rem;">
-        <div class="card-body">
+      <div class="card text-dark bg-light mb-3">
+        <div class="card-body ">
           <h5 class="card-title">Name: {{.ProjectName}}</h5>
           <h6 class="card-subtitle mb-2 text-muted">Technologies: {{.Technologies}}</h6>
           <p class="card-text">Description: {{.Description}}</p>
@@ -14,6 +14,7 @@
         </div>
       </div>
        </div>
+
        <div>
        <button type="button" class="btn btn-primary"  onclick="window.location.href='/index';">View Bugs in {{.ProjectName}}</button>
        </div>

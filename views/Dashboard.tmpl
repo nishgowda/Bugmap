@@ -1,11 +1,12 @@
 {{ define "Dashboard" }}
   {{ template "Header" }}
     {{ template "Menu"  }}
+    <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
     <center>
     <h2>Dashboard</h2>
         </center>
     <div class="container">
-    <table class="table" >
+     <table class="table table-hover table-striped" >
       <thead>
       <tr>
         <th scope="col">Ongoing Projects</th>
@@ -21,8 +22,42 @@
     {{ end }}
        </tbody>
     </table>
+
+                <div id="chartContainer" width="400" height="400"></div>
+                
+     </div>
+<script type="text/javascript">
+window.onload = function () {
+	var chart = new CanvasJS.Chart("chartContainer", {
+	animationEnabled: true,
+	theme: "light2",
+	title:{
+		text: "Your Activity"
+	},
+	axisY:{
+		includeZero: false
+	},
+	data: [{        
+		type: "line",
+      	indexLabelFontSize: 16,
+			// Change type to "doughnut", "line", "splineArea", etc.      
+			dataPoints: [
+                {{ range . }}
+				{ label: {{.Dates}}, y: {{.NumIssues}}  }
+                  {{ end }}
+			]
+          
+		}
+		]
+	});
+	chart.render();
+}
+</script>
+
+
     
     </div>
+
 
   {{ template "Footer" }}
 {{ end }}
