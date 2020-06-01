@@ -59,6 +59,7 @@ var singedIn = false
 func Home(w http.ResponseWriter, r *http.Request) {
 	tmpl.ExecuteTemplate(w, "Login", nil)
 }
+
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
@@ -138,6 +139,43 @@ func Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func Dashboard(w http.ResponseWriter, r *http.Request) {
+	db := dbConn()
+	rows, err := db.Query("SELECT COUNT(*) FROM Projects")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	empProj := models.Totals{}
+	resProj := []models.Totals{}
+	var countProjects int
+
+	for rows.Next() {
+		if err := rows.Scan(&countProjects); err != nil {
+			log.Fatal(err)
+		}
+
+	}
+
+	allRows, errs := db.Query("SELECT COUNT(*) FROM Issues")
+	if errs != nil {
+		log.Fatal(errs)
+	}
+	defer allRows.Close()
+	var countIssues int
+	for allRows.Next() {
+		if err := allRows.Scan(&countIssues); err != nil {
+			log.Fatal(err)
+		}
+	}
+	empProj.NumProjects = countProjects
+	empProj.NumIssues = countIssues
+	resProj = append(resProj, empProj)
+	fmt.Println(resProj)
+	tmpl.ExecuteTemplate(w, "Dashboard", resProj)
+	defer db.Close()
+}
+
+func DisplayProjects(w http.ResponseWriter, r *http.Request) {
 	if singedIn != false {
 		db := dbConn()
 		selDB, err := db.Query("SELECT * FROM Projects WHERE user_id=? ORDER BY id DESC", uid)
@@ -161,7 +199,8 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			res = append(res, emp)
 		}
 		//fmt.Println(uid)
-		tmpl.ExecuteTemplate(w, "Dashboard", res)
+		fmt.Println(res)
+		tmpl.ExecuteTemplate(w, "DisplayProjects", res)
 		defer db.Close()
 	} else {
 		http.Redirect(w, r, "/", 301)
@@ -185,7 +224,7 @@ func InsertProject(w http.ResponseWriter, r *http.Request) {
 			log.Println("INSERT: Name: " + name + " | Description: " + description + " | Technologies: " + technologies)
 		}
 		defer db.Close()
-		http.Redirect(w, r, "/dashboard", 301)
+		http.Redirect(w, r, "/displayprojects", 301)
 	} else {
 		http.Redirect(w, r, "/", 301)
 	}
@@ -240,6 +279,7 @@ func EditProject(w http.ResponseWriter, r *http.Request) {
 				panic(err.Error())
 			}
 			emp.Id = id
+			project_id = emp.Id
 			emp.UserId = user_id
 			emp.ProjectName = name
 			emp.Description = description
@@ -258,16 +298,16 @@ func UpdateProject(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "POST" {
 			r.ParseForm()
 			name, description, technologies := r.PostFormValue("name"), r.PostFormValue("description"), r.PostFormValue("technologies")
-			id := r.FormValue("uid")
+			fmt.Println(project_id)
 			insForm, err := db.Prepare("UPDATE Projects SET name=?, description=?, technologies=? WHERE id=?")
 			if err != nil {
 				fmt.Println(err.Error())
 			}
-			insForm.Exec(name, description, id, technologies)
+			insForm.Exec(name, description, technologies, project_id)
 			log.Println("UPDATE: Name: " + name + " | Description: " + description + " | Technologies: " + technologies)
 		}
 		defer db.Close()
-		http.Redirect(w, r, "/dashboard", 301)
+		http.Redirect(w, r, "/displayprojects", 301)
 	} else {
 		http.Redirect(w, r, "/", 301)
 	}
@@ -286,7 +326,7 @@ func DeleteProject(w http.ResponseWriter, r *http.Request) {
 		delForm.Exec(emp)
 		log.Println("DELETE")
 		defer db.Close()
-		http.Redirect(w, r, "/dashboard", 301)
+		http.Redirect(w, r, "/displayprojects", 301)
 	} else {
 		http.Redirect(w, r, "/", 301)
 	}
