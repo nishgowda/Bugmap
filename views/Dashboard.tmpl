@@ -4,31 +4,47 @@
     <center>
     <h2> Your Projects </h2>
     </center>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+.btn {
+  background-color: DodgerBlue;
+  border: none;
+  color: white;
+  padding: 12px 16px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+/* Darker background on mouse-over */
+.btn:hover {
+  background-color: RoyalBlue;
+}
+</style>
     <div class="container">
-    <table class="table" >
-      <thead>
-      <tr>
-        <th scope="col">Name</th>
-        <th scope="col">Description</th>
-        <th scope="col">View</th>
-        <th scope="col">Edit</th>
-        <th scope="col">Resolve</th>
-      </tr>
-       </thead>
-       <tbody>
-    {{ range .  }}
-      <tr>
-        <td> {{ .ProjectName }} </td>
-        <td>{{ .Description }} </td> 
-        <td><a href="/showproject?id={{ .Id }}">View</a></td>
-        <td><a href="/editproject?id={{ .Id }}">Edit</a></td>
-        <td><a href="/deleteproject?id={{ .Id }}">Resolve</a><td>
-      </tr>
-    {{ end }}
-       </tbody>
-    </table>
-    <button type="button" class="btn btn-primary"  onclick="window.location.href='/newproject';">New Project</button>
+
+      <div class="row">
+            {{ range .}}
+  <div class="col-sm-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Name: {{.ProjectName}}</h5>
+           <h6 class="card-subtitle mb-2 text-muted">Tech: {{.Technologies}}</h6>
+          <p class="card-text">Description: {{.Description}}</p>
+       <a href="/showproject?id={{ .Id }}">View</a>
+      <a href="/editproject?id={{ .Id }}">Edit</a></td>
+       <a href="/deleteproject?id={{ .Id }}">Resolve</a>
+        </div>
+      </div>  
+      </div>
+      {{ end }}
+      </div>
+      </div>
+          <center>
+      <div>
+    <button class="btn" onclick="window.location.href='/newproject';"><i class="fa fa-plus-circle"></i> Add a Project</button>
     </div>
+    </center>
+
 
   {{ template "Footer" }}
 {{ end }}

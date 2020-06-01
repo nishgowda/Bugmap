@@ -3,10 +3,20 @@
     {{ template "Menu"  }}
     <div class="container">
     <center>
-    <h2> Name: {{ .ProjectName }} </h2>
-      <p>Description:  {{ .Description }}</p>
-      <br /> <a href="/editproject?id={{ .Id }}">Edit</a></p> <a href="/deleteproject?id={{ .Id }}">Delete</a></p>
-       <button type="button" class="btn btn-primary"  onclick="window.location.href='/index';">View Issues</button>
+    <div>
+      <div class="card" style="width: 18rem;">
+        <div class="card-body">
+          <h5 class="card-title">Name: {{.ProjectName}}</h5>
+          <h6 class="card-subtitle mb-2 text-muted">Technologies: {{.Technologies}}</h6>
+          <p class="card-text">Description: {{.Description}}</p>
+          <a href="/editproject?id={{ .Id }}" class="card-link">Edit</a>
+          <a href="/deleteproject?id={{ .Id }}" class="card-link">Delete</a>
+        </div>
+      </div>
+       </div>
+       <div>
+       <button type="button" class="btn btn-primary"  onclick="window.location.href='/index';">View Bugs</button>
+       </div>
       </center>
     </div>
   {{ template "Footer" }}

@@ -19,6 +19,12 @@
     <textarea class="form-control" aria-label="With textarea" name="description"  value="{{ .Description }}" rows="3"required ></textarea><br />
   </div>
   <div>
+        <div class="input-group mb-3">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id="basic-addon1">Technologies</span>
+      </div>
+      <input type="text" class="form-control" placeholder="" aria-label="Technologies" aria-describedby="basic-addon1" value="{{ .Technologies }}" name="technologies" required><br />
+    </div>
       <input type="submit" class="btn btn-primary" value="Save" />
       </div>
     </form><br />    

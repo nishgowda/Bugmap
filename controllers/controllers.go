@@ -148,8 +148,8 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		res := []models.Projects{}
 		for selDB.Next() {
 			var id, user_id int
-			var name, description string
-			err = selDB.Scan(&id, &name, &description, &user_id)
+			var name, description, technologies string
+			err = selDB.Scan(&id, &name, &description, &user_id, &technologies)
 			if err != nil {
 				panic(err.Error())
 			}
@@ -157,6 +157,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			emp.UserId = user_id
 			emp.ProjectName = name
 			emp.Description = description
+			emp.Technologies = technologies
 			res = append(res, emp)
 		}
 		//fmt.Println(uid)
@@ -175,13 +176,13 @@ func InsertProject(w http.ResponseWriter, r *http.Request) {
 		db := dbConn()
 		if r.Method == "POST" {
 			r.ParseForm()
-			name, description := r.PostFormValue("name"), r.PostFormValue("description")
-			insForm, err := db.Prepare("INSERT INTO Projects(name, description, user_id) VALUES(?,?,?)")
+			name, description, technologies := r.PostFormValue("name"), r.PostFormValue("description"), r.PostFormValue("technologies")
+			insForm, err := db.Prepare("INSERT INTO Projects(name, description, user_id, technologies) VALUES(?,?,?, ?)")
 			if err != nil {
 				panic(err.Error())
 			}
-			insForm.Exec(name, description, uid)
-			log.Println("INSERT: Name: " + name + " | Description: " + description)
+			insForm.Exec(name, description, uid, technologies)
+			log.Println("INSERT: Name: " + name + " | Description: " + description + " | Technologies: " + technologies)
 		}
 		defer db.Close()
 		http.Redirect(w, r, "/dashboard", 301)
@@ -201,8 +202,8 @@ func ShowProject(w http.ResponseWriter, r *http.Request) {
 		emp := models.Projects{}
 		for selDB.Next() {
 			var id, user_id int
-			var name, description string
-			err = selDB.Scan(&id, &name, &description, &user_id)
+			var name, description, technologies string
+			err = selDB.Scan(&id, &name, &description, &user_id, &technologies)
 			if err != nil {
 				panic(err.Error())
 			}
@@ -210,6 +211,7 @@ func ShowProject(w http.ResponseWriter, r *http.Request) {
 			emp.UserId = user_id
 			emp.ProjectName = name
 			emp.Description = description
+			emp.Technologies = technologies
 			project_id = emp.Id
 			fmt.Println("Project id is " + string(project_id))
 		}
@@ -232,8 +234,8 @@ func EditProject(w http.ResponseWriter, r *http.Request) {
 		emp := models.Projects{}
 		for selDB.Next() {
 			var id, user_id int
-			var name, description string
-			err = selDB.Scan(&id, &name, &description, &user_id)
+			var name, description, technologies string
+			err = selDB.Scan(&id, &name, &description, &user_id, &technologies)
 			if err != nil {
 				panic(err.Error())
 			}
@@ -241,6 +243,7 @@ func EditProject(w http.ResponseWriter, r *http.Request) {
 			emp.UserId = user_id
 			emp.ProjectName = name
 			emp.Description = description
+			emp.Technologies = technologies
 		}
 		tmpl.ExecuteTemplate(w, "EditProject", emp)
 		defer db.Close()
@@ -254,14 +257,14 @@ func UpdateProject(w http.ResponseWriter, r *http.Request) {
 		db := dbConn()
 		if r.Method == "POST" {
 			r.ParseForm()
-			name, description := r.PostFormValue("name"), r.PostFormValue("description")
+			name, description, technologies := r.PostFormValue("name"), r.PostFormValue("description"), r.PostFormValue("technologies")
 			id := r.FormValue("uid")
-			insForm, err := db.Prepare("UPDATE Projects SET name=?, description=? WHERE id=?")
+			insForm, err := db.Prepare("UPDATE Projects SET name=?, description=?, technologies=? WHERE id=?")
 			if err != nil {
 				fmt.Println(err.Error())
 			}
-			insForm.Exec(name, description, id)
-			log.Println("UPDATE: Name: " + name + " | Description: " + description)
+			insForm.Exec(name, description, id, technologies)
+			log.Println("UPDATE: Name: " + name + " | Description: " + description + " | Technologies: " + technologies)
 		}
 		defer db.Close()
 		http.Redirect(w, r, "/dashboard", 301)
@@ -403,7 +406,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 		db := dbConn()
 		nId := r.URL.Query().Get("id")
 		fmt.Println(r.Method)
-		selDB, err := db.Query("SELECT * FROM Issues WHERE id=? and project_id=? and user_id", nId, project_id, uid)
+		selDB, err := db.Query("SELECT * FROM Issues WHERE id=? and project_id=?", nId, project_id)
 		if err != nil {
 			panic(err.Error())
 		}
