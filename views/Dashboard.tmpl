@@ -1,7 +1,7 @@
 {{ define "Dashboard" }}
   {{ template "Header" }}
     {{ template "Menu"  }}
-    <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+   <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
     <center>
     <h2>Dashboard</h2>
         </center>
@@ -23,35 +23,31 @@
        </tbody>
     </table>
 
-                <div id="chartContainer" width="400" height="400"></div>
+                <canvas id="myChart" style="height: 300px; width: 100%;"></canvas>
                 
      </div>
 <script type="text/javascript">
-window.onload = function () {
-	var chart = new CanvasJS.Chart("chartContainer", {
-	animationEnabled: true,
-	theme: "light2",
-	title:{
-		text: "Your Activity"
-	},
-	axisY:{
-		includeZero: false
-	},
-	data: [{        
-		type: "line",
-      	indexLabelFontSize: 16,
-			// Change type to "doughnut", "line", "splineArea", etc.      
-			dataPoints: [
-                {{ range . }}
-				{ label: {{.Dates}}, y: {{.NumIssues}}  }
-                  {{ end }}
-			]
-          
-		}
-		]
-	});
-	chart.render();
-}
+var ctx = document.getElementById('myChart').getContext('2d');
+var chart = new Chart(ctx, {
+    // The type of chart we want to create
+    type: 'line',
+
+    // The data for our dataset
+    data: {
+        {{ range .}}
+        labels: [{{ .Dates }}],
+        datasets: [{
+            label: 'Your Activity',
+            backgroundColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(255, 99, 132)',
+            data: [{{ .NumIssues}}]
+        }]
+        {{ end}}
+    },
+
+    // Configuration options go here
+    options: {}
+});
 </script>
 
 
