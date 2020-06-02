@@ -139,51 +139,55 @@ func Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func Dashboard(w http.ResponseWriter, r *http.Request) {
-	db := dbConn()
-	rows, err := db.Query("SELECT COUNT(*) FROM Projects where user_id=?", uid)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-	empProj := models.Totals{}
-	resProj := []models.Totals{}
-	var countProjects int
-
-	for rows.Next() {
-		if err := rows.Scan(&countProjects); err != nil {
-			log.Fatal(err)
-		}
-
-	}
-	allRows, errs := db.Query("SELECT COUNT(*) FROM Issues where user_id=?", uid)
-	if errs != nil {
-		log.Fatal(errs)
-	}
-	defer allRows.Close()
-	var countIssues int
-	for allRows.Next() {
-		if err := allRows.Scan(&countIssues); err != nil {
-			log.Fatal(err)
-		}
-	}
-	dateRows, ers := db.Query("SELECT DATE from Issues where user_id=?", uid)
-	if ers != nil {
-		fmt.Println(ers)
-	}
-	for dateRows.Next() {
-		var date string
-		err = dateRows.Scan(&date)
+	if singedIn == true {
+		db := dbConn()
+		rows, err := db.Query("SELECT COUNT(*) FROM Projects where user_id=?", uid)
 		if err != nil {
-			panic(err.Error())
+			log.Fatal(err)
 		}
-		empProj.Dates = date
+		defer rows.Close()
+		empProj := models.Totals{}
+		resProj := []models.Totals{}
+		var countProjects int
+
+		for rows.Next() {
+			if err := rows.Scan(&countProjects); err != nil {
+				log.Fatal(err)
+			}
+
+		}
+		allRows, errs := db.Query("SELECT COUNT(*) FROM Issues where user_id=?", uid)
+		if errs != nil {
+			log.Fatal(errs)
+		}
+		defer allRows.Close()
+		var countIssues int
+		for allRows.Next() {
+			if err := allRows.Scan(&countIssues); err != nil {
+				log.Fatal(err)
+			}
+		}
+		dateRows, ers := db.Query("SELECT DATE from Issues where user_id=?", uid)
+		if ers != nil {
+			fmt.Println(ers)
+		}
+		for dateRows.Next() {
+			var date string
+			err = dateRows.Scan(&date)
+			if err != nil {
+				panic(err.Error())
+			}
+			empProj.Dates = date
+		}
+		empProj.NumProjects = countProjects
+		empProj.NumIssues = countIssues
+		resProj = append(resProj, empProj)
+		fmt.Println(resProj)
+		tmpl.ExecuteTemplate(w, "Dashboard", resProj)
+		defer db.Close()
+	} else {
+		http.Redirect(w, r, "/", 301)
 	}
-	empProj.NumProjects = countProjects
-	empProj.NumIssues = countIssues
-	resProj = append(resProj, empProj)
-	fmt.Println(resProj)
-	tmpl.ExecuteTemplate(w, "Dashboard", resProj)
-	defer db.Close()
 }
 
 func DisplayProjects(w http.ResponseWriter, r *http.Request) {

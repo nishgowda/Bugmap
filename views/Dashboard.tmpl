@@ -22,22 +22,24 @@
     {{ end }}
        </tbody>
     </table>
-
-                <canvas id="myChart" style="height: 300px; width: 100%;"></canvas>
-                
-     </div>
+        <div>
+         <div class="card text-dark bg-light mb-3">
+        <div class="card-body">
+         <canvas id="myChart" style="height: 300px; width: 100%;"></canvas>    
+         </div>
+         </div> 
+            </div>
 <script type="text/javascript">
 var ctx = document.getElementById('myChart').getContext('2d');
 var chart = new Chart(ctx, {
     // The type of chart we want to create
     type: 'line',
-
     // The data for our dataset
     data: {
         {{ range .}}
         labels: [{{ .Dates }}],
         datasets: [{
-            label: 'Your Activity',
+            label: 'Issue Activity',
             backgroundColor: 'rgb(255, 99, 132)',
             borderColor: 'rgb(255, 99, 132)',
             data: [{{ .NumIssues}}]
@@ -49,9 +51,6 @@ var chart = new Chart(ctx, {
     options: {}
 });
 </script>
-
-
-    
     </div>
 
 

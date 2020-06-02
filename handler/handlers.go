@@ -1,13 +1,12 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"models/controllers"
 	"net/http"
 )
 
-func handler() {
+func handlerFunc() {
 	log.Println("Server started on: http://localhost:8080")
 
 	http.HandleFunc("/", controllers.Home)
@@ -36,6 +35,5 @@ func handler() {
 }
 
 func main() {
-	fmt.Println("Starting application")
-	handler()
+	handlerFunc()
 }
