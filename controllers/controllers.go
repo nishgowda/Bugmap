@@ -154,8 +154,8 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			if err := rows.Scan(&countProjects); err != nil {
 				log.Fatal(err)
 			}
-
 		}
+		empProj.NumProjects = countProjects
 		allRows, errs := db.Query("SELECT COUNT(*) FROM Issues where user_id=?", uid)
 		if errs != nil {
 			log.Fatal(errs)
@@ -163,23 +163,62 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		defer allRows.Close()
 		var countIssues int
 		for allRows.Next() {
-			if err := allRows.Scan(&countIssues); err != nil {
+			if errs := allRows.Scan(&countIssues); errs != nil {
 				log.Fatal(err)
 			}
 		}
-		dateRows, ers := db.Query("SELECT DATE from Issues where user_id=?", uid)
-		if ers != nil {
-			fmt.Println(ers)
+
+		lowPriorityRows, errs := db.Query("Select count(*) from issues where priority='Low' and user_id=?", uid)
+		if errs != nil {
+			log.Fatal(errs)
 		}
-		for dateRows.Next() {
-			var date string
-			err = dateRows.Scan(&date)
-			if err != nil {
-				panic(err.Error())
+		defer lowPriorityRows.Close()
+		var LowPriorityCount int
+		for lowPriorityRows.Next() {
+			if errs := lowPriorityRows.Scan(&LowPriorityCount); errs != nil {
+				log.Fatal(err)
 			}
-			empProj.Dates = date
 		}
-		empProj.NumProjects = countProjects
+		medPriorityRows, errs := db.Query("Select count(*) from issues where priority='Medium' and user_id=?", uid)
+		if errs != nil {
+			log.Fatal(errs)
+		}
+		defer medPriorityRows.Close()
+		var MedPriorityCount int
+		for medPriorityRows.Next() {
+			if errs := medPriorityRows.Scan(&MedPriorityCount); errs != nil {
+				log.Fatal(err)
+			}
+		}
+
+		highPriorityRows, errs := db.Query("Select count(*) from issues where priority='High' and user_id=?", uid)
+		if errs != nil {
+			log.Fatal(errs)
+		}
+		defer highPriorityRows.Close()
+		var HighPriorityCount int
+		for highPriorityRows.Next() {
+			if errs := highPriorityRows.Scan(&HighPriorityCount); errs != nil {
+				log.Fatal(err)
+			}
+		}
+
+		critPriorityRows, errs := db.Query("Select count(*) from issues where priority='Critical' and user_id=?", uid)
+		if errs != nil {
+			log.Fatal(errs)
+		}
+		defer highPriorityRows.Close()
+		var CriticalPriorityCount int
+		for critPriorityRows.Next() {
+			if errs := critPriorityRows.Scan(&CriticalPriorityCount); errs != nil {
+				log.Fatal(err)
+			}
+		}
+
+		empProj.NumLow = LowPriorityCount
+		empProj.NumMedium = MedPriorityCount
+		empProj.NumHigh = HighPriorityCount
+		empProj.NumCritical = CriticalPriorityCount
 		empProj.NumIssues = countIssues
 		resProj = append(resProj, empProj)
 		fmt.Println(resProj)
