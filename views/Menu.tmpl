@@ -1,104 +1,49 @@
 {{ define "Menu" }}
-<style>
-*{
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  list-style: none;
-  text-decoration: none;
-}
-body{
-   background-color: #ffff;
-}
-.wrapper{
-  display: flex;
-  position: relative;
-}
+<style type="text/css">
+  *{
+   margin: 0;
+   padding: 0;
+   font-family: sans-serif;
+  }
 
-.wrapper .sidebar{
-  width: 200px;
-  height: 100%;
-  background: #292b2c;
-  padding: 30px 0px;
-  position: fixed;
-}
+  #sidebar{
+   position: fixed;
+   width: 200px;
+   height: 100%;
+   background: #151719;
+   left: -200px;
+   transition: all 500ms linear;
+  }
+  #sidebar.active{
+   left:0px;
+  }
+  #sidebar ul li{
+   color: rgba(230,230,230,0.9);
+   list-style: none;
+   padding: 15px 10px;
+   border-bottom: 1px solid rgba(100,100,100,0.3);
+  }
+  #sidebar .toggle-btn{
+   position: absolute;
+   left: 230px;
+   top: 20px;
+  }
+  #sidebar .toggle-btn span{
+   display: block;
+   width: 30px;
+   height: 5px;
+   background: #151719;
+   margin: 5px 0px;
 
-.wrapper .sidebar h2{
-  color: #fff;
-  text-transform: uppercase;
-  text-align: center;
-  margin-bottom: 30px;
-}
+  }
+ </style>
+ <script type="text/javascript">
+  function toggleSidebar(){
+   document.getElementById("sidebar").classList.toggle('active');
+  }
+ </script>
 
-.wrapper .sidebar ul li{
-  padding: 15px;
-  border-bottom: 1px solid #292b2c;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-  border-top: 1px solid rgba(255,255,255,0.05);
-}    
 
-.wrapper .sidebar ul li a{
-  color: ##ffff;
-  display: block;
-}
-
-.wrapper .sidebar ul li a .fas{
-  width: 25px;
-}
-
-.wrapper .sidebar ul li:hover{
-  background-color: #292b2c;
-}
-    
-.wrapper .sidebar ul li:hover a{
-  color: #ffff;
-}
- 
-.wrapper .sidebar .social_media{
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-}
-
-.wrapper .sidebar .social_media a{
-  display: block;
-  width: 40px;
-  background: #292b2c;
-  height: 40px;
-  line-height: 45px;
-  text-align: center;
-  margin: 0 5px;
-  color: #292b2c;
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
-}
-
-.wrapper .main_content{
-  width: 100%;
-  margin-left: 200px;
-}
-
-.wrapper .main_content .header{
-  padding: 20px;
-  background: #ffff;
-  color: #292b2c;
-  border-bottom: 1px solid #ffff;
-}
-
-.wrapper .main_content .info{
-  margin: 20px;
-  color: #292b2c;
-  line-height: 25px;
-}
-
-.wrapper .main_content .info div{
-  margin-bottom: 20px;
-}
-}
-
-</style>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
   <a class="navbar-brand" href="/dashboard">Bugmap</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
@@ -110,13 +55,17 @@ body{
   </div>
 </nav>
 
-<div class="wrapper">
-    <div class="sidebar">
-        <ul>
-            <li><a href="/dashboard">Dashboard</a></li>
-            <li><a href="/displayprojects">Projects</a></li>
-            <li><a href="/bugs">Bugs</a></li>
-        </ul> 
-    </div>
-    </div>
+ <div id="sidebar">
+  <div class="toggle-btn" onclick="toggleSidebar()"><a>
+   <span></span>
+   <span></span>
+   <span></span>
+  </a>
+  </div>
+  <ul>
+   <li ><a href="/dashboard"> Dashboard </a> </li>
+   <li  ><a href="/displayprojects" >Projects </a></li>
+   <li ><a href="/bugs"> Bugs </a></li>
+  </ul>
+ </div>
 {{ end }}
