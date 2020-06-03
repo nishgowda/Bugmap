@@ -1,10 +1,15 @@
 {{ define "Login" }}
   {{ template "Header" }}
-  <script src="https://apis.google.com/js/platform.js" async defer></script>
     <center>
+    <body class="p-3 mb-2 bg-dark text-white">
     <div class="container">
-   <h2>Login</h2>  
+   <h2>Welcome to Bugmap</h2>  
     <form method="POST" action="login">
+<div class="card bg-light mb-3">
+        <div class="card-body">
+          <h5 class="card-title">Sign in</h5>
+           <h6 class="card-subtitle mb-2 text-muted"></h6>
+
         <div class="input-group mb-3">
       <div class="input-group-prepend">
         <span class="input-group-text" id="basic-addon1">Username</span>
@@ -21,21 +26,22 @@
       <div class="col-md-3">
    <input type="submit" class="btn btn-primary" value="Login"/>
   </div>
-
-      <div class="row-md-3">
-  <div class="col-md-3">
+      <div class="row">
+  <div class="col">
     <a class="btn btn-outline-dark" href="/googlelogin" role="button" style="text-transform:none">
       <img width="20px" style="margin-bottom:3px; margin-right:5px" alt="Google sign-in" src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Google_%22G%22_Logo.svg/512px-Google_%22G%22_Logo.svg.png" />
       Login with Google
     </a>
   </div>
-        <div class="row-md-3">
-  <div class="col-md-3">
+  <div class="col">
     <a class="btn btn-outline-dark" href="/githublogin" role="button" style="text-transform:none">
       <img width="20px" style="margin-bottom:3px; margin-right:5px" alt="Google sign-in" src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" />
       Login with Github
     </a>
   </div>
+          </div>
+      </div> 
+      </div>
 
 </div>
 </div>
@@ -58,5 +64,6 @@
     </form>
     </center>
     <div>
+    </body>
   {{ template "Footer" }}
 {{ end }}

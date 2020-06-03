@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"models/models"
 	"net/http"
 	"os"
@@ -16,7 +17,6 @@ import (
 	"github.com/google/go-github/github"
 	"golang.org/x/crypto/bcrypt"
 
-	jparse "github.com/nishgowda/Jparse"
 	"golang.org/x/oauth2"
 	githuboauth "golang.org/x/oauth2/github" // with go modules enabled (GO111MODULE=on or outside GOPATH)
 	"golang.org/x/oauth2/google"
@@ -226,6 +226,15 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
 
 }
 
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+func RandStringBytes(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
+}
 func HandleCallback(w http.ResponseWriter, r *http.Request) {
 	if r.FormValue("state") != randState {
 		fmt.Println("state is not valid")
@@ -253,15 +262,12 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(string(content))
+	js := string(content)
 	//values := []string{""}
-	embValues := []string{"email", "name"}
-
-	//embObj := []string{"response"}
-	userEmail := jparse.SimpleParse(embValues, string(content))
-	var email string
-	for i := range userEmail {
-		email = userEmail[i]
-	}
+	var result map[string]interface{}
+	// Unmarshal or Decode the JSON to the interface.
+	json.Unmarshal([]byte(js), &result)
+	email := fmt.Sprint(result["email"])
 	fmt.Println(email)
 	db := dbConn()
 	var exists bool
@@ -293,12 +299,14 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 				resExist = append(resExist, empExist)
 			}
 		} else {
-			insForm, err := db.Prepare("INSERT INTO Users(email) VALUES(?)")
+			insForm, err := db.Prepare("INSERT IGNORE INTO Users(email, password) VALUES(?,?)")
 			if err != nil {
 				fmt.Println(err.Error())
 			}
-			insForm.Exec(email)
-			log.Println("INSERT: Email" + email)
+			password := RandStringBytes(14)
+			hash, _ := HashPassword(password)
+			insForm.Exec(email, hash)
+			log.Println("INSERT: Email" + email + " | Password: " + hash)
 			defer db.Close()
 		}
 	}
@@ -312,27 +320,27 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	if r.Method == "POST" {
 		r.ParseForm()
-		username, password := r.PostFormValue("username"), r.PostFormValue("password")
+		email, password := r.PostFormValue("email"), r.PostFormValue("password")
 		ogPassword := password
-		selDb, err := db.Query("SELECT uid, username, password FROM USERS WHERE username=?", username)
+		selDb, err := db.Query("SELECT uid, email, password FROM USERS WHERE email=?", email)
 		if err != nil {
 			http.Redirect(w, r, "/", 301)
 		}
 		emp := models.Users{}
 		res := []models.Users{}
 		for selDb.Next() {
-			err = selDb.Scan(&uid, &username, &password)
+			err = selDb.Scan(&uid, &email, &password)
 			if err != nil {
 				panic(err.Error())
 			}
 			emp.Uid = uid
 			emp.Password = password
-			emp.Username = username
+			emp.Email = email
 			if uid != 0 {
 				if CheckPasswordHash(ogPassword, emp.Password) == true {
 					res = append(res, emp)
 					//fmt.Println(emp.Password)
-					fmt.Println("succesfully logged in as " + username)
+					fmt.Println("succesfully logged in as " + email)
 					singedIn = true
 				} else {
 					http.Redirect(w, r, "/", 301) // ---> Figure out a work around for this superfluous response.WriteHeader call from main.Login (main.go:129)
@@ -363,14 +371,14 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Working?")
 	if r.Method == "POST" {
 		r.ParseForm()
-		username, password, email := r.PostFormValue("username"), r.PostFormValue("password"), r.PostFormValue("email")
-		insForm, err := db.Prepare("INSERT INTO Users(username, password, email) VALUES(?,?, ?)")
+		email, password := r.PostFormValue("email"), r.PostFormValue("password")
+		insForm, err := db.Prepare("INSERT IGNORE INTO Users(email, password ) VALUES(?,?)")
 		if err != nil {
 			fmt.Println(err.Error)
 		}
 		hash, _ := HashPassword(password)
-		insForm.Exec(username, hash, email)
-		log.Println("INSERT: Username: " + username + " | Password: " + string(hash))
+		insForm.Exec(email, hash)
+		log.Println("INSERT: Email: " + email + " | Password: " + string(hash))
 	}
 
 	defer db.Close()
