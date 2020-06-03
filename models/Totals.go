@@ -7,6 +7,6 @@ type Totals struct {
 	NumHigh       int
 	NumMedium     int
 	NumLow        int
-	issuesPerDate int
-	Dates         string
+	IssuesPerDate []int
+	Dates         []string
 }

@@ -69,6 +69,7 @@ func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
 }
+
 func Login(w http.ResponseWriter, r *http.Request) {
 	db := dbConn()
 	if r.Method == "POST" {
@@ -137,6 +138,29 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 	http.Redirect(w, r, "/", 301)
 }
+func uniqueInt(intSlice []int) []int {
+	keys := make(map[int]bool)
+	list := []int{}
+	for _, entry := range intSlice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
+}
+
+func uniqueString(stringSlice []string) []string {
+	keys := make(map[string]bool)
+	list := []string{}
+	for _, entry := range stringSlice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+	return list
+}
 
 func Dashboard(w http.ResponseWriter, r *http.Request) {
 	if singedIn == true {
@@ -155,7 +179,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 				log.Fatal(err)
 			}
 		}
-		empProj.NumProjects = countProjects
+
 		allRows, errs := db.Query("SELECT COUNT(*) FROM Issues where user_id=?", uid)
 		if errs != nil {
 			log.Fatal(errs)
@@ -220,6 +244,47 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		empProj.NumHigh = HighPriorityCount
 		empProj.NumCritical = CriticalPriorityCount
 		empProj.NumIssues = countIssues
+		empProj.NumProjects = countProjects
+
+		//emp := models.Totals{}
+		//res := []models.Totals{}
+		var dates string
+		dateRows, errs := db.Query("Select Date from issues where user_id=?", uid)
+		if errs != nil {
+			log.Fatal(errs)
+		}
+		for dateRows.Next() {
+
+			errs = dateRows.Scan(&dates)
+			if errs != nil {
+				log.Fatal(errs)
+			}
+			empProj.Dates = uniqueString(append(empProj.Dates, dates))
+		}
+		var issuesPerDateCount int
+		for i := 0; i < len(empProj.Dates); i++ {
+			issuesPerDate, errs := db.Query("Select count(*) from issues where date=?", empProj.Dates[i])
+			if errs != nil {
+				log.Fatal(errs)
+			}
+			defer issuesPerDate.Close()
+			for issuesPerDate.Next() {
+				if errs := issuesPerDate.Scan(&issuesPerDateCount); errs != nil {
+					log.Fatal(err)
+				}
+				empProj.IssuesPerDate = uniqueInt(append(empProj.IssuesPerDate, issuesPerDateCount))
+
+			}
+		}
+		fmt.Println(empProj.Dates)
+		fmt.Println(empProj.IssuesPerDate)
+
+		for _, value := range empProj.Dates {
+			fmt.Println(value)
+		}
+		for _, value := range empProj.IssuesPerDate {
+			fmt.Println(value)
+		}
 		resProj = append(resProj, empProj)
 		fmt.Println(resProj)
 		tmpl.ExecuteTemplate(w, "Dashboard", resProj)
