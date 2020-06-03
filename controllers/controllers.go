@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io/ioutil"
@@ -12,7 +13,13 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/google/go-github/github"
 	"golang.org/x/crypto/bcrypt"
+
+	jparse "github.com/nishgowda/Jparse"
+	"golang.org/x/oauth2"
+	githuboauth "golang.org/x/oauth2/github" // with go modules enabled (GO111MODULE=on or outside GOPATH)
+	"golang.org/x/oauth2/google"
 )
 
 func ObtainDatabaseName() string {
@@ -68,6 +75,237 @@ func HashPassword(password string) (string, error) {
 func CheckPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil
+}
+
+var (
+	googleOauthConfig *oauth2.Config
+)
+
+func init() {
+	initGithub()
+	initGoogle()
+}
+func initGoogle() {
+	jsonFile, err := os.Open("../googlesecret.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("Successfully Opened Json file")
+	defer jsonFile.Close()
+
+	body, err := ioutil.ReadAll(jsonFile)
+	js := string(body)
+	var result map[string]interface{}
+	// Unmarshal or Decode the JSON to the interface.
+	json.Unmarshal([]byte(js), &result)
+	clientID := fmt.Sprint(result["client_id"])
+	clientSecret := fmt.Sprint(result["client_secret"])
+	redirectURL := fmt.Sprint(result["redirect_url"])
+	fmt.Println(clientID)
+	fmt.Println(clientSecret)
+	googleOauthConfig = &oauth2.Config{
+		RedirectURL:  redirectURL,
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email"},
+		Endpoint:     google.Endpoint,
+	}
+}
+
+var (
+	githubOauthConfig *oauth2.Config
+)
+
+func initGithub() {
+	jsonFile, err := os.Open("../githubsecret.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println("Successfully Opened Json file")
+	defer jsonFile.Close()
+
+	body, err := ioutil.ReadAll(jsonFile)
+	js := string(body)
+	var result map[string]interface{}
+	// Unmarshal or Decode the JSON to the interface.
+	json.Unmarshal([]byte(js), &result)
+	clientID := fmt.Sprint(result["client_id"])
+	clientSecret := fmt.Sprint(result["client_secret"])
+	redirectURL := fmt.Sprint(result["redirect_url"])
+	githubOauthConfig = &oauth2.Config{
+		ClientID:     clientID,
+		ClientSecret: clientSecret,
+		RedirectURL:  redirectURL,
+		Scopes:       []string{"user:email"},
+		Endpoint:     githuboauth.Endpoint,
+	}
+}
+
+// Generate a random string of A-Z chars with len = l
+
+var randState = "random"
+
+func HandleLogin(w http.ResponseWriter, r *http.Request) {
+	url := googleOauthConfig.AuthCodeURL(randState)
+	http.Redirect(w, r, url, 301)
+}
+
+func HandleGitHubLogin(w http.ResponseWriter, r *http.Request) {
+	url := githubOauthConfig.AuthCodeURL(randState, oauth2.AccessTypeOnline)
+	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+}
+func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
+	state := r.FormValue("state")
+	if state != randState {
+		fmt.Printf("invalid oauth state, expected '%s', got '%s'\n", randState, state)
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+
+	code := r.FormValue("code")
+	token, err := githubOauthConfig.Exchange(oauth2.NoContext, code)
+	if err != nil {
+		fmt.Printf("oauthConf.Exchange() failed with '%s'\n", err)
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+
+	oauthClient := githubOauthConfig.Client(oauth2.NoContext, token)
+	client := github.NewClient(oauthClient)
+	user, _, err := client.Users.Get(oauth2.NoContext, "")
+	if err != nil {
+		fmt.Printf("client.Users.Get() faled with '%s'\n", err)
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+	fmt.Printf("Logged in as GitHub user: %s\n", *user.Email)
+	email := *user.Email
+	db := dbConn()
+	var exists bool
+	existsDb, err := db.Query("select exists(select email from users where email=?)", email)
+	if err != nil {
+		fmt.Println(err)
+	}
+	//emp := models.Users{}
+	//res := []models.Users{}
+	for existsDb.Next() {
+		err = existsDb.Scan(&exists)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		if exists {
+			selDb, err := db.Query("SELECT uid from users where email=?", email)
+			if err != nil {
+				fmt.Println(err)
+			}
+			empExist := models.Users{}
+			resExist := []models.Users{}
+			for selDb.Next() {
+				err = selDb.Scan(&uid)
+				if err != nil {
+					panic(err.Error())
+				}
+				fmt.Println(uid)
+				empExist.Uid = uid
+				resExist = append(resExist, empExist)
+			}
+		} else {
+			insForm, err := db.Prepare("INSERT INTO Users(email) VALUES(?)")
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			insForm.Exec(email)
+			log.Println("INSERT: Email" + email)
+			defer db.Close()
+		}
+	}
+	singedIn = true
+	defer db.Close()
+	fmt.Println("dashboard?")
+	http.Redirect(w, r, "/dashboard", 301)
+
+}
+
+func HandleCallback(w http.ResponseWriter, r *http.Request) {
+	if r.FormValue("state") != randState {
+		fmt.Println("state is not valid")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+	token, err := googleOauthConfig.Exchange(oauth2.NoContext, r.FormValue("code"))
+	if err != nil {
+		fmt.Println("couldn't get token", err.Error())
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+
+	resp, err := http.Get("https://www.googleapis.com/oauth2/v3/userinfo?access_token=" + token.AccessToken)
+	if err != nil {
+		fmt.Println("couldn't get request", err.Error())
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+	defer resp.Body.Close()
+	content, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("couldn't parse response", err.Error())
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+	fmt.Println(string(content))
+	//values := []string{""}
+	embValues := []string{"email", "name"}
+
+	//embObj := []string{"response"}
+	userEmail := jparse.SimpleParse(embValues, string(content))
+	var email string
+	for i := range userEmail {
+		email = userEmail[i]
+	}
+	fmt.Println(email)
+	db := dbConn()
+	var exists bool
+	existsDb, err := db.Query("select exists(select email from users where email=?)", email)
+	if err != nil {
+		fmt.Println(err)
+	}
+	//emp := models.Users{}
+	//res := []models.Users{}
+	for existsDb.Next() {
+		err = existsDb.Scan(&exists)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		if exists {
+			selDb, err := db.Query("SELECT uid from users where email=?", email)
+			if err != nil {
+				fmt.Println(err)
+			}
+			empExist := models.Users{}
+			resExist := []models.Users{}
+			for selDb.Next() {
+				err = selDb.Scan(&uid)
+				if err != nil {
+					panic(err.Error())
+				}
+				fmt.Println(uid)
+				empExist.Uid = uid
+				resExist = append(resExist, empExist)
+			}
+		} else {
+			insForm, err := db.Prepare("INSERT INTO Users(email) VALUES(?)")
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			insForm.Exec(email)
+			log.Println("INSERT: Email" + email)
+			defer db.Close()
+		}
+	}
+	singedIn = true
+	defer db.Close()
+	fmt.Println("dashboard?")
+	http.Redirect(w, r, "/dashboard", 301)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {

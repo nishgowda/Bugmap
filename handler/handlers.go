@@ -11,6 +11,10 @@ func handlerFunc() {
 
 	http.HandleFunc("/", controllers.Home)
 	http.HandleFunc("/login", controllers.Login)
+	http.HandleFunc("/googlelogin", controllers.HandleLogin)
+	http.HandleFunc("/callback", controllers.HandleCallback)
+	http.HandleFunc("/githublogin", controllers.HandleGitHubLogin)
+	http.HandleFunc("/callback/github", controllers.HandleGitHubCallback)
 	http.HandleFunc("/signup", controllers.SingUpPage)
 	http.HandleFunc("/register", controllers.Register)
 	http.HandleFunc("/logoutpage", controllers.LogoutPage)
