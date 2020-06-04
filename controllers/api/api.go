@@ -43,7 +43,9 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	db := controllers.DbConn()
-	rows, err := db.Query("SELECT COUNT(*) FROM Projects where user_id=?", controllers.Uid)
+	fmt.Println(claims.Email)
+	fmt.Println(claims.Uid)
+	rows, err := db.Query("SELECT COUNT(*) FROM Projects where user_id=?", claims.Uid)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,7 +59,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 	}
-	allRows, errs := db.Query("SELECT COUNT(*) FROM Issues where user_id=?", controllers.Uid)
+	allRows, errs := db.Query("SELECT COUNT(*) FROM Issues where user_id=?", claims.Uid)
 	if errs != nil {
 		log.Fatal(errs)
 	}
@@ -69,7 +71,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	lowPriorityRows, errs := db.Query("Select count(*) from issues where priority='Low' and user_id=?", controllers.Uid)
+	lowPriorityRows, errs := db.Query("Select count(*) from issues where priority='Low' and user_id=?", claims.Uid)
 	if errs != nil {
 		log.Fatal(errs)
 	}
@@ -80,7 +82,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 	}
-	medPriorityRows, errs := db.Query("Select count(*) from issues where priority='Medium' and user_id=?", controllers.Uid)
+	medPriorityRows, errs := db.Query("Select count(*) from issues where priority='Medium' and user_id=?", claims.Uid)
 	if errs != nil {
 		log.Fatal(errs)
 	}
@@ -92,7 +94,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	highPriorityRows, errs := db.Query("Select count(*) from issues where priority='High' and user_id=?", controllers.Uid)
+	highPriorityRows, errs := db.Query("Select count(*) from issues where priority='High' and user_id=?", claims.Uid)
 	if errs != nil {
 		log.Fatal(errs)
 	}
@@ -104,7 +106,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	critPriorityRows, errs := db.Query("Select count(*) from issues where priority='Critical' and user_id=?", controllers.Uid)
+	critPriorityRows, errs := db.Query("Select count(*) from issues where priority='Critical' and user_id=?", claims.Uid)
 	if errs != nil {
 		log.Fatal(errs)
 	}
@@ -126,7 +128,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 	//emp := models.Totals{}
 	//res := []models.Totals{}
 	var dates string
-	dateRows, errs := db.Query("Select Date from issues where user_id=?", controllers.Uid)
+	dateRows, errs := db.Query("Select Date from issues where user_id=?", claims.Uid)
 	if errs != nil {
 		log.Fatal(errs)
 	}
@@ -199,7 +201,7 @@ func DisplayProjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	db := controllers.DbConn()
-	selDB, err := db.Query("SELECT * FROM Projects WHERE user_id=? ORDER BY id DESC", controllers.Uid)
+	selDB, err := db.Query("SELECT * FROM Projects WHERE user_id=? ORDER BY id DESC", claims.Uid)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -265,7 +267,7 @@ func InsertProject(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err.Error())
 		}
-		insForm.Exec(name, description, controllers.Uid, technologies)
+		insForm.Exec(name, description, claims.Uid, technologies)
 		log.Println("INSERT: Name: " + name + " | Description: " + description + " | Technologies: " + technologies)
 	}
 	defer db.Close()
@@ -304,7 +306,7 @@ func ShowProject(w http.ResponseWriter, r *http.Request) {
 	}
 	db := controllers.DbConn()
 	nId := r.URL.Query().Get("id")
-	selDB, err := db.Query("SELECT * FROM Projects WHERE id=? and user_id=?", nId, controllers.Uid)
+	selDB, err := db.Query("SELECT * FROM Projects WHERE id=? and user_id=?", nId, claims.Uid)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -361,7 +363,7 @@ func EditProject(w http.ResponseWriter, r *http.Request) {
 	db := controllers.DbConn()
 	nId := r.URL.Query().Get("id")
 	fmt.Println(r.Method)
-	selDB, err := db.Query("SELECT * FROM Projects WHERE id=? and user_id=?", nId, controllers.Uid)
+	selDB, err := db.Query("SELECT * FROM Projects WHERE id=? and user_id=?", nId, claims.Uid)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -506,7 +508,7 @@ func DisplayIssues(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	db := controllers.DbConn()
-	selDB, err := db.Query("SELECT * FROM Issues WHERE user_id=? ORDER BY id DESC", controllers.Uid)
+	selDB, err := db.Query("SELECT * FROM Issues WHERE user_id=? ORDER BY id DESC", claims.Uid)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -566,7 +568,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db := controllers.DbConn()
-	selDB, err := db.Query("SELECT * FROM Issues WHERE project_id=? and user_id=? ORDER BY id DESC", controllers.Project_id, controllers.Uid)
+	selDB, err := db.Query("SELECT * FROM Issues WHERE project_id=? and user_id=? ORDER BY id DESC", controllers.Project_id, claims.Uid)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -629,7 +631,7 @@ func Show(w http.ResponseWriter, r *http.Request) {
 	db := controllers.DbConn()
 	nId := r.URL.Query().Get("id")
 	fmt.Println(nId)
-	selDB, err := db.Query("SELECT * FROM Issues WHERE id=? and project_id=? and user_id=?", nId, controllers.Project_id, controllers.Uid)
+	selDB, err := db.Query("SELECT * FROM Issues WHERE id=? and project_id=? and user_id=?", nId, controllers.Project_id, claims.Uid)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -701,7 +703,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 	for selDB.Next() {
 		var id, project_id int
 		var name, description, priority, date string
-		err = selDB.Scan(&id, &name, &description, &priority, &date, &project_id, &controllers.Uid)
+		err = selDB.Scan(&id, &name, &description, &priority, &date, &project_id, &claims.Uid)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -757,7 +759,7 @@ func Insert(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err.Error())
 		}
-		insForm.Exec(name, description, priority, date, controllers.Project_id, controllers.Uid)
+		insForm.Exec(name, description, priority, date, controllers.Project_id, claims.Uid)
 		log.Println("INSERT: Name: " + name + " | Description: " + description + " | Priority: " + priority + " | Date: " + date)
 	}
 	defer db.Close()
@@ -844,7 +846,6 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-
 	db := controllers.DbConn()
 	emp := r.URL.Query().Get("id")
 	fmt.Println(r.Method)

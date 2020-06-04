@@ -23,47 +23,9 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-func DbConn() (db *sql.DB) {
-	file, err := os.Open("./dbSecret.json")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-	body, err := ioutil.ReadAll(file)
-	js := string(body)
-	var result map[string]interface{}
-	// Unmarshal or Decode the JSON to the interface.
-	json.Unmarshal([]byte(js), &result)
-	DbName := fmt.Sprint(result["dbName"])
-	DbPassword := fmt.Sprint(result["dbPassword"])
-	dbDriver := "mysql"
-	dbUser := "root"
-	dbPass := DbPassword
-	dbName := DbName
-	db, errs := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
-	if errs != nil {
-		panic(err.Error())
-	}
-	return db
-}
-
 var Tmpl = template.Must(template.ParseGlob("./views/*"))
-var Uid int
+
 var Project_id int
-
-func Home(w http.ResponseWriter, r *http.Request) {
-	Tmpl.ExecuteTemplate(w, "Login", nil)
-}
-
-func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
-}
-
-func CheckPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
-}
 
 var (
 	googleOauthConfig *oauth2.Config
@@ -72,22 +34,6 @@ var (
 func init() {
 	initGithub()
 	initGoogle()
-
-}
-
-func JwtKey() []byte {
-	jsonFile, err := os.Open("./secretKey.json")
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer jsonFile.Close()
-	body, err := ioutil.ReadAll(jsonFile)
-	js := string(body)
-	var result map[string]interface{}
-	json.Unmarshal([]byte(js), &result)
-	secretKey := fmt.Sprint(result["secret_key"])
-	var jwtKey = []byte(secretKey)
-	return jwtKey
 }
 
 func initGoogle() {
@@ -151,115 +97,64 @@ func initGithub() {
 var randState = "random"
 var jwtKey = JwtKey()
 
+func DbConn() (db *sql.DB) {
+	file, err := os.Open("./dbSecret.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	body, err := ioutil.ReadAll(file)
+	js := string(body)
+	var result map[string]interface{}
+	// Unmarshal or Decode the JSON to the interface.
+	json.Unmarshal([]byte(js), &result)
+	DbName := fmt.Sprint(result["dbName"])
+	DbPassword := fmt.Sprint(result["dbPassword"])
+	dbDriver := "mysql"
+	dbUser := "root"
+	dbPass := DbPassword
+	dbName := DbName
+	db, errs := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
+	if errs != nil {
+		panic(err.Error())
+	}
+	return db
+}
+
+func Home(w http.ResponseWriter, r *http.Request) {
+	Tmpl.ExecuteTemplate(w, "Login", nil)
+}
+
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
+
+func CheckPasswordHash(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
+func JwtKey() []byte {
+	jsonFile, err := os.Open("./secretKey.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer jsonFile.Close()
+	body, err := ioutil.ReadAll(jsonFile)
+	js := string(body)
+	var result map[string]interface{}
+	json.Unmarshal([]byte(js), &result)
+	secretKey := fmt.Sprint(result["secret_key"])
+	var jwtKey = []byte(secretKey)
+	return jwtKey
+}
+
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	url := googleOauthConfig.AuthCodeURL(randState)
 	http.Redirect(w, r, url, 301)
 }
 
-func HandleGitHubLogin(w http.ResponseWriter, r *http.Request) {
-	url := githubOauthConfig.AuthCodeURL(randState, oauth2.AccessTypeOnline)
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
-}
-func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
-	state := r.FormValue("state")
-	if state != randState {
-		fmt.Printf("invalid oauth state, expected '%s', got '%s'\n", randState, state)
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-		return
-	}
-
-	code := r.FormValue("code")
-	token, err := githubOauthConfig.Exchange(oauth2.NoContext, code)
-	if err != nil {
-		fmt.Printf("oauthConf.Exchange() failed with '%s'\n", err)
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-		return
-	}
-
-	oauthClient := githubOauthConfig.Client(oauth2.NoContext, token)
-	client := github.NewClient(oauthClient)
-	user, _, err := client.Users.Get(oauth2.NoContext, "")
-	if err != nil {
-		fmt.Printf("client.Users.Get() faled with '%s'\n", err)
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-		return
-	}
-	fmt.Printf("Logged in as GitHub user: %s\n", *user.Email)
-	email := *user.Email
-	db := DbConn()
-	var exists bool
-	existsDb, err := db.Query("select exists(select email from users where email=?)", email)
-	if err != nil {
-		fmt.Println(err)
-	}
-	//emp := models.Users{}
-	//res := []models.Users{}
-	for existsDb.Next() {
-		err = existsDb.Scan(&exists)
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		if exists {
-			selDb, err := db.Query("SELECT uid from users where email=?", email)
-			if err != nil {
-				fmt.Println(err)
-			}
-			empExist := models.Users{}
-			resExist := []models.Users{}
-			for selDb.Next() {
-				err = selDb.Scan(&Uid)
-				if err != nil {
-					panic(err.Error())
-				}
-				fmt.Println(Uid)
-				empExist.Uid = Uid
-				resExist = append(resExist, empExist)
-			}
-		} else {
-			insForm, err := db.Prepare("INSERT INTO Users(email) VALUES(?)")
-			if err != nil {
-				fmt.Println(err.Error())
-			}
-			insForm.Exec(email)
-			log.Println("INSERT: Email" + email)
-			defer db.Close()
-		}
-	}
-	defer db.Close()
-	fmt.Println(email)
-	expirationTime := time.Now().Add(30 * time.Minute)
-	claims := &models.Claims{
-		Email: email,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
-		},
-	}
-	tokens := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := tokens.SignedString(jwtKey)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	http.SetCookie(w, &http.Cookie{
-		Name:    "token",
-		Value:   tokenString,
-		Expires: expirationTime,
-	})
-
-	fmt.Println("dashboard?")
-	http.Redirect(w, r, "/dashboard", 301)
-
-}
-
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-
-func RandStringBytes(n int) string {
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = letterBytes[rand.Intn(len(letterBytes))]
-	}
-	return string(b)
-}
 func HandleCallback(w http.ResponseWriter, r *http.Request) {
 	if r.FormValue("state") != randState {
 		fmt.Println("state is not valid")
@@ -294,6 +189,7 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal([]byte(js), &result)
 	email := fmt.Sprint(result["email"])
 	fmt.Println(email)
+
 	db := DbConn()
 	var exists bool
 	existsDb, err := db.Query("select exists(select email from users where email=?)", email)
@@ -302,6 +198,7 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 	//emp := models.Users{}
 	//res := []models.Users{}
+	var uid int
 	for existsDb.Next() {
 		err = existsDb.Scan(&exists)
 		if err != nil {
@@ -315,12 +212,12 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 			empExist := models.Users{}
 			resExist := []models.Users{}
 			for selDb.Next() {
-				err = selDb.Scan(&Uid)
+				err = selDb.Scan(&uid)
 				if err != nil {
 					panic(err.Error())
 				}
-				fmt.Println(Uid)
-				empExist.Uid = Uid
+				fmt.Println(uid)
+				empExist.Uid = uid
 				resExist = append(resExist, empExist)
 			}
 		} else {
@@ -328,35 +225,146 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				fmt.Println(err.Error())
 			}
+
 			password := RandStringBytes(14)
 			hash, _ := HashPassword(password)
 			insForm.Exec(email, hash)
 			log.Println("INSERT: Email" + email + " | Password: " + hash)
 			defer db.Close()
 		}
+		expirationTime := time.Now().Add(30 * time.Minute)
+		claims := &models.Claims{
+			Email: email,
+			Uid:   uid,
+			StandardClaims: jwt.StandardClaims{
+				ExpiresAt: expirationTime.Unix(),
+			},
+		}
+		tokens := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		tokenString, err := tokens.SignedString(jwtKey)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		http.SetCookie(w, &http.Cookie{
+			Name:    "token",
+			Value:   tokenString,
+			Expires: expirationTime,
+		})
 	}
-	expirationTime := time.Now().Add(30 * time.Minute)
-	claims := &models.Claims{
-		Email: email,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: expirationTime.Unix(),
-		},
-	}
-	tokens := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := tokens.SignedString(jwtKey)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	http.SetCookie(w, &http.Cookie{
-		Name:    "token",
-		Value:   tokenString,
-		Expires: expirationTime,
-	})
 
 	defer db.Close()
 	fmt.Println("dashboard?")
 	http.Redirect(w, r, "/dashboard", 301)
+}
+
+func HandleGitHubLogin(w http.ResponseWriter, r *http.Request) {
+	url := githubOauthConfig.AuthCodeURL(randState, oauth2.AccessTypeOnline)
+	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+}
+func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
+	state := r.FormValue("state")
+	if state != randState {
+		fmt.Printf("invalid oauth state, expected '%s', got '%s'\n", randState, state)
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+
+	code := r.FormValue("code")
+	token, err := githubOauthConfig.Exchange(oauth2.NoContext, code)
+	if err != nil {
+		fmt.Printf("oauthConf.Exchange() failed with '%s'\n", err)
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+
+	oauthClient := githubOauthConfig.Client(oauth2.NoContext, token)
+	client := github.NewClient(oauthClient)
+	user, _, err := client.Users.Get(oauth2.NoContext, "")
+	if err != nil {
+		fmt.Printf("client.Users.Get() faled with '%s'\n", err)
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+	fmt.Printf("Logged in as GitHub user: %s\n", *user.Email)
+	email := *user.Email
+
+	db := DbConn()
+	var exists bool
+	existsDb, err := db.Query("select exists(select email from users where email=?)", email)
+	if err != nil {
+		fmt.Println(err)
+	}
+	//emp := models.Users{}
+	//res := []models.Users{}
+	var uid int
+	for existsDb.Next() {
+		err = existsDb.Scan(&exists)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		if exists {
+			selDb, err := db.Query("SELECT uid from users where email=?", email)
+			if err != nil {
+				fmt.Println(err)
+			}
+			empExist := models.Users{}
+			resExist := []models.Users{}
+			for selDb.Next() {
+				err = selDb.Scan(&uid)
+				if err != nil {
+					panic(err.Error())
+				}
+				fmt.Println(uid)
+				empExist.Uid = uid
+				resExist = append(resExist, empExist)
+			}
+		} else {
+			insForm, err := db.Prepare("INSERT INTO Users(email) VALUES(?)")
+			if err != nil {
+				fmt.Println(err.Error())
+			}
+			insForm.Exec(email)
+			log.Println("INSERT: Email" + email)
+			defer db.Close()
+		}
+		expirationTime := time.Now().Add(30 * time.Minute)
+		claims := &models.Claims{
+			Email: email,
+			Uid:   uid,
+			StandardClaims: jwt.StandardClaims{
+				ExpiresAt: expirationTime.Unix(),
+			},
+		}
+		tokens := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		tokenString, err := tokens.SignedString(jwtKey)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		http.SetCookie(w, &http.Cookie{
+			Name:    "token",
+			Value:   tokenString,
+			Expires: expirationTime,
+		})
+
+	}
+	defer db.Close()
+	fmt.Println(email)
+
+	fmt.Println("dashboard?")
+	http.Redirect(w, r, "/dashboard", 301)
+
+}
+
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+func RandStringBytes(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
@@ -371,15 +379,16 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		}
 		emp := models.Users{}
 		res := []models.Users{}
+		var uid int
 		for selDb.Next() {
-			err = selDb.Scan(&Uid, &email, &password)
+			err = selDb.Scan(&uid, &email, &password)
 			if err != nil {
 				panic(err.Error())
 			}
-			emp.Uid = Uid
+			emp.Uid = uid
 			emp.Password = password
 			emp.Email = email
-			if Uid != 0 {
+			if uid != 0 {
 				if CheckPasswordHash(ogPassword, emp.Password) == true {
 					res = append(res, emp)
 					//fmt.Println(emp.Password)

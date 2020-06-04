@@ -11,5 +11,6 @@ type Users struct {
 
 type Claims struct {
 	Email string
+	Uid   int
 	jwt.StandardClaims
 }
