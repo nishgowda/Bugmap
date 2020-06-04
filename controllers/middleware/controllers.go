@@ -50,7 +50,6 @@ func DbConn() (db *sql.DB) {
 var Tmpl = template.Must(template.ParseGlob("./views/*"))
 var Uid int
 var Project_id int
-var SingedIn = false
 
 func Home(w http.ResponseWriter, r *http.Request) {
 	Tmpl.ExecuteTemplate(w, "Login", nil)
@@ -227,7 +226,6 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	defer db.Close()
-	SingedIn = true
 	fmt.Println(email)
 	expirationTime := time.Now().Add(30 * time.Minute)
 	claims := &models.Claims{
@@ -337,7 +335,6 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 			defer db.Close()
 		}
 	}
-	SingedIn = true
 	expirationTime := time.Now().Add(30 * time.Minute)
 	claims := &models.Claims{
 		Email: email,
@@ -406,7 +403,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 						Value:   tokenString,
 						Expires: expirationTime,
 					})
-					SingedIn = true
+
 				} else {
 					http.Redirect(w, r, "/", 301) // ---> Figure out a work around for this superfluous response.WriteHeader call from main.Login (main.go:129)
 				}
@@ -426,7 +423,6 @@ func LogoutPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func Logout(w http.ResponseWriter, r *http.Request) {
-	SingedIn = false
 	http.Redirect(w, r, "/", 301)
 }
 

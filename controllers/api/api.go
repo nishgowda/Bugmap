@@ -856,5 +856,4 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	log.Println("DELETE")
 	defer db.Close()
 	http.Redirect(w, r, "/index", 301)
-
 }
