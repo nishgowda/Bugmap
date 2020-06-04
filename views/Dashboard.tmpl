@@ -9,7 +9,7 @@
     <div class="container">
       <div class="row">
   <div class="col-sm-6">
-      <div class="card border-primary mb-3">
+      <div class="cardtext-white bg-info mb-3">
         <div class="card-body">
          {{ range .}}
           <h5 class="card-title">Ongoing Projects: {{.NumProjects}}</h5>
@@ -21,7 +21,7 @@
       </div>
 
   <div class="col-sm-6">
-      <div class="card border-danger mb-3">
+      <div class="card text-white bg-warning mb-3">
         <div class="card-body">
          {{ range .}}
           <h5 class="card-title">Ongoing Issues: {{.NumIssues}}</h5>
@@ -40,11 +40,6 @@
          </div>
          </div> 
 
-<div class="card text-dark bg-light mb-3">
-        <div class="card-body">
-         <canvas id="line-chart" style="height: 300px; width: 100%;"></canvas>    
-         </div>
-         </div> 
 
             </div>
 <script type="text/javascript">
@@ -70,36 +65,6 @@ var chart = new Chart(ctx, {
       }
     }
 });
-
-new Chart(document.getElementById("line-chart"), {
-  type: 'line',
-  data: {
-    {{range .}}
-    {{ range $values := .Dates}}
-    labels:   [{{ $values }}],
-    {{ end }}
-    {{ end }}
-    datasets: [{ 
-          {{range .}}
-          {{range $elements :=  .IssuesPerDate}}
-        data:  [{{ $elements }}],
-        {{ end }}
-        {{ end }}
-        label: "Issues",
-        borderColor: "#3e95cd",
-        fill: false
-      }
-    ]
-  },
-  options: {
-    title: {
-      display: true,
-      text: 'Your Activity'
-    }
-  }
-});
-
-
 
 
 
