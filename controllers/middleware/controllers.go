@@ -11,7 +11,9 @@ import (
 	"models/models"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/go-github/github"
 	"golang.org/x/crypto/bcrypt"
@@ -71,7 +73,24 @@ var (
 func init() {
 	initGithub()
 	initGoogle()
+
 }
+
+func JwtKey() []byte {
+	jsonFile, err := os.Open("./secretKey.json")
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer jsonFile.Close()
+	body, err := ioutil.ReadAll(jsonFile)
+	js := string(body)
+	var result map[string]interface{}
+	json.Unmarshal([]byte(js), &result)
+	secretKey := fmt.Sprint(result["secret_key"])
+	var jwtKey = []byte(secretKey)
+	return jwtKey
+}
+
 func initGoogle() {
 	jsonFile, err := os.Open("./googlesecret.json")
 	if err != nil {
@@ -131,6 +150,7 @@ func initGithub() {
 // Generate a random string of A-Z chars with len = l
 
 var randState = "random"
+var jwtKey = JwtKey()
 
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	url := googleOauthConfig.AuthCodeURL(randState)
@@ -206,8 +226,28 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
 			defer db.Close()
 		}
 	}
-	SingedIn = true
 	defer db.Close()
+	SingedIn = true
+	fmt.Println(email)
+	expirationTime := time.Now().Add(30 * time.Minute)
+	claims := &models.Claims{
+		Email: email,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+	tokens := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := tokens.SignedString(jwtKey)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:    "token",
+		Value:   tokenString,
+		Expires: expirationTime,
+	})
+
 	fmt.Println("dashboard?")
 	http.Redirect(w, r, "/dashboard", 301)
 
@@ -298,6 +338,25 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	SingedIn = true
+	expirationTime := time.Now().Add(30 * time.Minute)
+	claims := &models.Claims{
+		Email: email,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+		},
+	}
+	tokens := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := tokens.SignedString(jwtKey)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:    "token",
+		Value:   tokenString,
+		Expires: expirationTime,
+	})
+
 	defer db.Close()
 	fmt.Println("dashboard?")
 	http.Redirect(w, r, "/dashboard", 301)
@@ -328,15 +387,36 @@ func Login(w http.ResponseWriter, r *http.Request) {
 					res = append(res, emp)
 					//fmt.Println(emp.Password)
 					fmt.Println("succesfully logged in as " + email)
+
+					expirationTime := time.Now().Add(30 * time.Minute)
+					claims := &models.Claims{
+						Email: email,
+						StandardClaims: jwt.StandardClaims{
+							ExpiresAt: expirationTime.Unix(),
+						},
+					}
+					tokens := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+					tokenString, err := tokens.SignedString(jwtKey)
+					if err != nil {
+						w.WriteHeader(http.StatusInternalServerError)
+						return
+					}
+					http.SetCookie(w, &http.Cookie{
+						Name:    "token",
+						Value:   tokenString,
+						Expires: expirationTime,
+					})
 					SingedIn = true
 				} else {
 					http.Redirect(w, r, "/", 301) // ---> Figure out a work around for this superfluous response.WriteHeader call from main.Login (main.go:129)
 				}
+
 			}
 
 		}
 
 	}
+
 	defer db.Close()
 	http.Redirect(w, r, "/dashboard", 301)
 }
@@ -393,4 +473,54 @@ func UniqueString(stringSlice []string) []string {
 		}
 	}
 	return list
+}
+
+func RefreshToken(w http.ResponseWriter, r *http.Request) {
+	c, err := r.Cookie("token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	tknStr := c.Value
+	claims := &models.Claims{}
+	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+	if !tkn.Valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 30*time.Second {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	expirationTime := time.Now().Add(5 * time.Minute)
+	claims.ExpiresAt = expirationTime.Unix()
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Set the new token as the users `session_token` cookie
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_token",
+		Value:   tokenString,
+		Expires: expirationTime,
+	})
+
 }
