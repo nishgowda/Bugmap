@@ -13,6 +13,7 @@ func HandlerFunc() {
 
 	http.HandleFunc("/", controllers.Home)
 	http.HandleFunc("/login", controllers.Login)
+	http.HandleFunc("/refresh", controllers.RefreshToken)
 	http.HandleFunc("/googlelogin", controllers.HandleLogin)
 	http.HandleFunc("/callback", controllers.HandleCallback)
 	http.HandleFunc("/githublogin", controllers.HandleGitHubLogin)

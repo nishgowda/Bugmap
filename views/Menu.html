@@ -69,25 +69,20 @@ body {
  </script>
 
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav class="navbar navbar-expand-lg  sticky-top navbar-light bg-light">
   <a class="navbar-brand" href="/dashboard">Bugmap</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
         <div class="navbar-nav">
+      <a class="nav-item nav-link active" href="/dashboard">Dashboard</a>
+      <a class="nav-item nav-link active" href="/displayprojects">Projects</a>
+      <a class="nav-item nav-link active" href="/bugs">Bugs</a>
       <a class="nav-item nav-link active" href="/logoutpage">Logout</a>
     </div>
   </div>
 </nav>
-<div id="mySidebar" class="sidebar">
-  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
-  <a href="/dashboard">Dashboard</a>
-  <a href="/displayprojects">Projects</a>
-  <a href="/bugs">Bugs</a>
-</div>
- <div id="main">
-  <button class="openbtn" onclick="openNav()">☰</button>  
-</div>
+
 
 <script>
 function openNav() {

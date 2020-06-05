@@ -1,30 +1,35 @@
 {{ define "Register" }}
   {{ template "Header" }}
         <center>
-    <body class="p-3 mb-2 bg-dark text-white">
+    <body>
     <div class="container">
    <h2>Welcome to Bugmap</h2>  
-    <form method="POST" action="login">
+    <form method="POST" action="register">
 <div class="card bg-light mb-3">
         <div class="card-body">
           <h5 class="card-title">Register an account</h5>
            <h6 class="card-subtitle mb-2 text-muted"></h6>
 
-        <div class="input-group mb-3">
-      <div class="input-group-prepend">
-        <span class="input-group-text" id="basic-addon1">Email</span>
-      </div>
-      <input type="text" class="form-control" placeholder="Name" aria-label="Username" aria-describedby="basic-addon1" name="email" required><br />
+         <div class="form-row">
+    <div class="col">
+      <input type="text" class="form-control" name ="first_name" placeholder="First name">
     </div>
-
-    <div class="input-group mb-3">
-      <div class="input-group-prepend">
-        <span class="input-group-text" id="basic-addon1">Password</span>
-      </div>
-      <input type="password" class="form-control" placeholder="Password" aria-label="Username" aria-describedby="basic-addon1" name="password" required><br />
+    <div class="col">
+      <input type="text" class="form-control" name ="last_name"  placeholder="Last name">
     </div>
+  </div>
+      <div class="form-group row">
+    <div class="col-sm">
+      <input type="text" class="form-control" id="inputUsername" placeholder="Username" name="username">
+    </div>
+  </div>
+  <div class="form-group row">
+    <div class="col-sm">
+      <input type="password" class="form-control" id="inputPassword3" placeholder="Password" name="password">
+    </div>
+  </div>
       <div class="col-md-3">
-   <input type="submit" class="btn btn-primary" value="Login"/>
+   <input type="submit" class="btn btn-dark" value="Register"/>
   </div>
       <div class="row">
   <div class="col">

@@ -223,18 +223,15 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 				resExist = append(resExist, empExist)
 			}
 		} else {
-			insForm, err := db.Prepare("INSERT IGNORE INTO Users(email, password) VALUES(?,?)")
+			insForm, err := db.Prepare("INSERT IGNORE INTO Users(email) VALUES(?)")
 			if err != nil {
 				fmt.Println(err.Error())
 			}
-
-			password := RandStringBytes(14)
-			hash, _ := HashPassword(password)
-			insForm.Exec(email, hash)
-			log.Println("INSERT: Email" + email + " | Password: " + hash)
+			insForm.Exec(email)
+			log.Println("INSERT: Email" + email)
 			defer db.Close()
 		}
-		expirationTime := time.Now().Add(5 * time.Minute)
+		expirationTime := time.Now().Add(1 * time.Minute)
 		claims := &models.Claims{
 			Email: email,
 			Uid:   uid,
@@ -252,7 +249,6 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 			Name:    "token",
 			Value:   tokenString,
 			Expires: expirationTime,
-			MaxAge:  60,
 			Path:    "/",
 		})
 		fmt.Println(tokenString)
@@ -326,7 +322,7 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
 				resExist = append(resExist, empExist)
 			}
 		} else {
-			insForm, err := db.Prepare("INSERT IGNORE INTO Users(email, password) VALUES(?,?)")
+			insForm, err := db.Prepare("INSERT IGNORE INTO Users(email) VALUES(?)")
 			if err != nil {
 				fmt.Println(err.Error())
 			}
@@ -334,10 +330,10 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
 			password := RandStringBytes(14)
 			hash, _ := HashPassword(password)
 			insForm.Exec(email, hash)
-			log.Println("INSERT: Email" + email + " | Password: " + hash)
+			log.Println("INSERT: Email" + email)
 			defer db.Close()
 		}
-		expirationTime := time.Now().Add(5 * time.Minute)
+		expirationTime := time.Now().Add(1 * time.Minute)
 		claims := &models.Claims{
 			Email: email,
 			Uid:   uid,
@@ -356,7 +352,6 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
 			Name:    "token",
 			Value:   tokenString,
 			Expires: expirationTime,
-			MaxAge:  60,
 			Path:    "/",
 		})
 
@@ -384,9 +379,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	db := DbConn()
 	if r.Method == "POST" {
 		r.ParseForm()
-		email, password := r.PostFormValue("email"), r.PostFormValue("password")
+		username, password := r.PostFormValue("username"), r.PostFormValue("password")
 		ogPassword := password
-		selDb, err := db.Query("SELECT uid, email, password FROM USERS WHERE email=?", email)
+		selDb, err := db.Query("SELECT uid, username, password FROM USERS WHERE username=?", username)
 		if err != nil {
 			http.Redirect(w, r, "/", 301)
 		}
@@ -394,22 +389,23 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		res := []models.Users{}
 		var uid int
 		for selDb.Next() {
-			err = selDb.Scan(&uid, &email, &password)
+			err = selDb.Scan(&uid, &username, &password)
 			if err != nil {
 				panic(err.Error())
 			}
 			emp.Uid = uid
 			emp.Password = password
-			emp.Email = email
+			emp.Username = username
 			if uid != 0 {
 				if CheckPasswordHash(ogPassword, emp.Password) == true {
 					res = append(res, emp)
 					//fmt.Println(emp.Password)
-					fmt.Println("succesfully logged in as " + email)
+					fmt.Println("succesfully logged in as " + username)
 
-					expirationTime := time.Now().Add(5 * time.Minute)
+					expirationTime := time.Now().Add(1 * time.Minute)
 					claims := &models.Claims{
-						Email: email,
+						Username: username,
+						Uid:      uid,
 						StandardClaims: jwt.StandardClaims{
 							ExpiresAt: expirationTime.Unix(),
 						},
@@ -456,14 +452,36 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Working?")
 	if r.Method == "POST" {
 		r.ParseForm()
-		email, password := r.PostFormValue("email"), r.PostFormValue("password")
-		insForm, err := db.Prepare("INSERT IGNORE INTO Users(email, password ) VALUES(?,?)")
+		username, password, first_name, last_name := r.PostFormValue("username"), r.PostFormValue("password"), r.PostFormValue("first_name"), r.PostFormValue("last_name")
+		currentData, err := db.Query("Select username from users")
+		if err != nil {
+			panic(err.Error())
+		}
+		var allUsersNames []string
+		var storedUsernames string
+		for currentData.Next() {
+			err = currentData.Scan(&storedUsernames)
+			if err != nil {
+				panic(err.Error())
+			}
+			allUsersNames = append(allUsersNames, storedUsernames)
+
+		}
+		fmt.Println(allUsersNames)
+		for i := 0; i < len(allUsersNames); i++ {
+			if allUsersNames[i] == username {
+				http.Redirect(w, r, "/", 301)
+				return
+			}
+		}
+		insForm, err := db.Prepare("INSERT IGNORE INTO Users(username, password, first_name, last_name ) VALUES(?,?,?,?)")
 		if err != nil {
 			fmt.Println(err.Error)
 		}
 		hash, _ := HashPassword(password)
-		insForm.Exec(email, hash)
-		log.Println("INSERT: Email: " + email + " | Password: " + string(hash))
+		insForm.Exec(username, hash, first_name, last_name)
+		log.Println("INSERT: Username: " + username + " | Password: " + string(hash) + " | First Name: " + first_name + " | Last Name : " + last_name)
+
 	}
 
 	defer db.Close()
@@ -525,20 +543,20 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	expirationTime := time.Now().Add(5 * time.Minute)
+	expirationTime := time.Now().Add(30 * time.Minute)
 	claims.ExpiresAt = expirationTime.Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(jwtKey)
+	fmt.Println("new token: " + tokenString)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
 	// Set the new token as the users `session_token` cookie
 	http.SetCookie(w, &http.Cookie{
-		Name:    "session_token",
+		Name:    "token",
 		Value:   tokenString,
 		Expires: expirationTime,
+		Path:    "/",
 	})
-
 }

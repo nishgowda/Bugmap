@@ -9,25 +9,27 @@
     <div class="container">
       <div class="row">
   <div class="col-sm-6">
-      <div class="cardtext-white bg-info mb-3">
+      <div class="card bg-light mb-3">
         <div class="card-body">
          {{ range .}}
-          <h5 class="card-title">Ongoing Projects: {{.NumProjects}}</h5>
+          <h5 class="card-title">Ongoing Projects:  <span class="badge badge-light">{{.NumProjects}}</span> </h5>
+          
           {{ end}}
            <h6 class="card-subtitle mb-2 text-muted">  </h6>
-            <a href="/displayprojects">See Projects</a>
+           <a href="/displayprojects" class="btn btn-dark">See Projects</a>
         </div>
       </div>  
       </div>
 
   <div class="col-sm-6">
-      <div class="card text-white bg-warning mb-3">
+      <div class="card bg-light mb-3">
         <div class="card-body">
          {{ range .}}
-          <h5 class="card-title">Ongoing Issues: {{.NumIssues}}</h5>
+          <h5 class="card-title">Ongoing Issues:  <span class="badge badge-light">{{.NumIssues}}</span> </h5>
+     
           {{ end}}
            <h6 class="card-subtitle mb-2 text-muted"></h6>
-           <a href="/bugs">See Issues</a>
+           <a href="/bugs" class="btn btn-dark">See Bugs</a>
         </div>
       </div> 
       </div>

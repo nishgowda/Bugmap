@@ -16,13 +16,12 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("token")
 	fmt.Println(r.Cookie("token"))
 	if err != nil {
-
 		if err == http.ErrNoCookie {
-			w.WriteHeader(http.StatusUnauthorized)
+			http.Redirect(w, r, "/", 301)
 			fmt.Println("404")
 			return
 		}
-		w.WriteHeader(http.StatusBadRequest)
+		http.Redirect(w, r, "/", 301)
 		fmt.Println("401")
 		return
 	}
@@ -130,6 +129,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 
 	//emp := models.Totals{}
 	//res := []models.Totals{}
+
 	var dates string
 	dateRows, errs := db.Query("Select Date from issues where user_id=?", claims.Uid)
 	if errs != nil {
@@ -178,10 +178,10 @@ func DisplayProjects(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("token")
 	if err != nil {
 		if err == http.ErrNoCookie {
-			w.WriteHeader(http.StatusUnauthorized)
+			http.Redirect(w, r, "/", 301)
 			return
 		}
-		w.WriteHeader(http.StatusBadRequest)
+		http.Redirect(w, r, "/", 301)
 		return
 	}
 
@@ -237,10 +237,10 @@ func InsertProject(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("token")
 	if err != nil {
 		if err == http.ErrNoCookie {
-			w.WriteHeader(http.StatusUnauthorized)
+			http.Redirect(w, r, "/", 301)
 			return
 		}
-		w.WriteHeader(http.StatusBadRequest)
+		http.Redirect(w, r, "/", 301)
 		return
 	}
 
@@ -282,10 +282,10 @@ func ShowProject(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("token")
 	if err != nil {
 		if err == http.ErrNoCookie {
-			w.WriteHeader(http.StatusUnauthorized)
+			http.Redirect(w, r, "/", 301)
 			return
 		}
-		w.WriteHeader(http.StatusBadRequest)
+		http.Redirect(w, r, "/", 301)
 		return
 	}
 
@@ -338,10 +338,10 @@ func EditProject(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("token")
 	if err != nil {
 		if err == http.ErrNoCookie {
-			w.WriteHeader(http.StatusUnauthorized)
+			http.Redirect(w, r, "/", 301)
 			return
 		}
-		w.WriteHeader(http.StatusBadRequest)
+		http.Redirect(w, r, "/", 301)
 		return
 	}
 
@@ -394,10 +394,10 @@ func UpdateProject(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("token")
 	if err != nil {
 		if err == http.ErrNoCookie {
-			w.WriteHeader(http.StatusUnauthorized)
+			http.Redirect(w, r, "/", 301)
 			return
 		}
-		w.WriteHeader(http.StatusBadRequest)
+		http.Redirect(w, r, "/", 301)
 		return
 	}
 
@@ -440,10 +440,10 @@ func DeleteProject(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("token")
 	if err != nil {
 		if err == http.ErrNoCookie {
-			w.WriteHeader(http.StatusUnauthorized)
+			http.Redirect(w, r, "/", 301)
 			return
 		}
-		w.WriteHeader(http.StatusBadRequest)
+		http.Redirect(w, r, "/", 301)
 		return
 	}
 
