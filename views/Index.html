@@ -2,7 +2,7 @@
   {{ template "Header" }}
     {{ template "Menu"  }}
     <center>
-    <h2>Pending Bugs in Project</h2>
+    <h2>Pending Tickets in Project</h2>
         </center>
     <div class="container">
     <table class="table table-hover table-striped" >
@@ -11,6 +11,7 @@
         <th scope="col">Date</th>
         <th scope="col">Name</th>
         <th scope="col">Description</th>
+        <th scope="col">Type</th>
         <th scope="col">Priority</th>
         <th scope="col">View</th>
         <th scope="col">Edit</th>
@@ -23,6 +24,7 @@
         <td>{{ .Date }} </td> 
         <td> {{ .Name }} </td>
         <td>{{ .Description }} </td> 
+        <td>{{ .Kind }} </td> 
         <td>{{ .Priority }} </td> 
         <td><a href="/show?id={{ .Id }}">View</a></td>
         <td><a href="/edit?id={{ .Id }}">Edit</a></td>
@@ -31,8 +33,7 @@
     {{ end }}
        </tbody>
     </table>
-    <button type="button" class="btn btn-primary"  onclick="window.location.href='/new';">New Bug</button>
-
+    <button type="button" class="btn btn-dark"  onclick="window.location.href='/new';">New Ticket</button>
     </div>
 
   {{ template "Footer" }}

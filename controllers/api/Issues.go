@@ -49,8 +49,8 @@ func DisplayIssues(w http.ResponseWriter, r *http.Request) {
 	res := []models.Issues{}
 	for selDB.Next() {
 		var id, user_id int
-		var name, description, priority, date string
-		err = selDB.Scan(&id, &name, &description, &priority, &date, &controllers.Project_id, &user_id)
+		var name, description, priority, date, kind string
+		err = selDB.Scan(&id, &name, &description, &priority, &date, &controllers.Project_id, &user_id, &kind)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -60,6 +60,7 @@ func DisplayIssues(w http.ResponseWriter, r *http.Request) {
 		emp.Description = description
 		emp.Priority = priority
 		emp.Date = date
+		emp.Kind = kind
 		res = append(res, emp)
 	}
 	//fmt.Print("display users id is ")
@@ -109,8 +110,8 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	res := []models.Issues{}
 	for selDB.Next() {
 		var id, project_id, user_id int
-		var name, description, priority, date string
-		err = selDB.Scan(&id, &name, &description, &priority, &date, &project_id, &user_id)
+		var name, description, priority, date, kind string
+		err = selDB.Scan(&id, &name, &description, &priority, &date, &project_id, &user_id, &kind)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -121,6 +122,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		emp.Description = description
 		emp.Priority = priority
 		emp.Date = date
+		emp.Kind = kind
 		res = append(res, emp)
 	}
 	//fmt.Print("user id is ")
@@ -171,8 +173,8 @@ func Show(w http.ResponseWriter, r *http.Request) {
 	emp := models.Issues{}
 	for selDB.Next() {
 		var id, project_id, user_id int
-		var name, description, priority, date string
-		err = selDB.Scan(&id, &name, &description, &priority, &date, &project_id, &user_id)
+		var name, description, priority, date, kind string
+		err = selDB.Scan(&id, &name, &description, &priority, &date, &project_id, &user_id, &kind)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -183,6 +185,7 @@ func Show(w http.ResponseWriter, r *http.Request) {
 		emp.Description = description
 		emp.Priority = priority
 		emp.Date = date
+		emp.Kind = kind
 	}
 	controllers.Tmpl.ExecuteTemplate(w, "Show", emp)
 	defer db.Close()
@@ -193,6 +196,8 @@ func Show(w http.ResponseWriter, r *http.Request) {
 func New(w http.ResponseWriter, r *http.Request) {
 	controllers.Tmpl.ExecuteTemplate(w, "New", nil)
 }
+
+var issueId string
 
 // Edit is a route to UPDATE an existing Blip
 func Edit(w http.ResponseWriter, r *http.Request) {
@@ -227,6 +232,8 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 
 	db := controllers.DbConn()
 	nId := r.URL.Query().Get("id")
+	fmt.Println(nId)
+	issueId = nId
 	fmt.Println(r.Method)
 	selDB, err := db.Query("SELECT * FROM Issues WHERE id=? and project_id=?", nId, controllers.Project_id)
 	if err != nil {
@@ -235,8 +242,8 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 	emp := models.Issues{}
 	for selDB.Next() {
 		var id, project_id int
-		var name, description, priority, date string
-		err = selDB.Scan(&id, &name, &description, &priority, &date, &project_id, &claims.Uid)
+		var name, description, priority, date, kind string
+		err = selDB.Scan(&id, &name, &description, &priority, &date, &project_id, &claims.Uid, &kind)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -246,6 +253,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 		emp.Description = description
 		emp.Priority = priority
 		emp.Date = date
+		emp.Kind = kind
 	}
 	controllers.Tmpl.ExecuteTemplate(w, "Edit", emp)
 	defer db.Close()
@@ -286,14 +294,14 @@ func Insert(w http.ResponseWriter, r *http.Request) {
 	db := controllers.DbConn()
 	if r.Method == "POST" {
 		r.ParseForm()
-		name, description, priority := r.PostFormValue("name"), r.PostFormValue("description"), r.PostFormValue("priority")
+		name, description, priority, kind := r.PostFormValue("name"), r.PostFormValue("description"), r.PostFormValue("priority"), r.PostFormValue("kind")
 		date := time.Now().Format("01-02-2006")
-		insForm, err := db.Prepare("INSERT INTO Issues(name, description, priority, date, project_id, user_id) VALUES(?,?,?,?,?, ?)")
+		insForm, err := db.Prepare("INSERT INTO Issues(name, description, priority, date, project_id, user_id, kind) VALUES(?,?,?,?,?,?,?)")
 		if err != nil {
 			panic(err.Error())
 		}
-		insForm.Exec(name, description, priority, date, controllers.Project_id, claims.Uid)
-		log.Println("INSERT: Name: " + name + " | Description: " + description + " | Priority: " + priority + " | Date: " + date)
+		insForm.Exec(name, description, priority, date, controllers.Project_id, claims.Uid, kind)
+		log.Println("INSERT: Name: " + name + " | Description: " + description + " | Priority: " + priority + " | Date: " + date + " | Kind: " + kind)
 	}
 	defer db.Close()
 	http.Redirect(w, r, "/index", 301)
@@ -330,19 +338,18 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-
 	db := controllers.DbConn()
 	if r.Method == "POST" {
-		r.ParseForm()
-		name, description, priority := r.PostFormValue("name"), r.PostFormValue("description"), r.PostFormValue("priority")
-		id := r.FormValue("project_id")
+		name, description, priority, kind := r.FormValue("name"), r.FormValue("description"), r.FormValue("priority"), r.FormValue("kind")
+		id := issueId
+		fmt.Println(id)
 		date := time.Now().Format("01-02-2006")
-		insForm, err := db.Prepare("UPDATE Issues SET name=?, description=?, priority=?, date=? WHERE id=?")
+		insForm, err := db.Prepare("UPDATE Issues SET name=?, description=?, priority=?, date=?, project_id=?, user_id=?, kind=? WHERE id=?")
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-		insForm.Exec(name, description, priority, date, id)
-		log.Println("UPDATE: Name: " + name + " | Description: " + description + " | Priority: " + priority + " | Date: " + date)
+		insForm.Exec(name, description, priority, date, controllers.Project_id, claims.Uid, kind, id)
+		log.Println("UPDATE: Name: " + name + " | Description: " + description + " | Priority: " + priority + " | Date: " + date + " | Kind: " + kind)
 	}
 	defer db.Close()
 	http.Redirect(w, r, "/index", 301)

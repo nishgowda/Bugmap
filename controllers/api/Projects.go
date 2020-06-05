@@ -130,43 +130,6 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 	//emp := models.Totals{}
 	//res := []models.Totals{}
 
-	var dates string
-	dateRows, errs := db.Query("Select Date from issues where user_id=?", claims.Uid)
-	if errs != nil {
-		log.Fatal(errs)
-	}
-	for dateRows.Next() {
-
-		errs = dateRows.Scan(&dates)
-		if errs != nil {
-			log.Fatal(errs)
-		}
-		empProj.Dates = controllers.UniqueString(append(empProj.Dates, dates))
-	}
-	var issuesPerDateCount int
-	for i := 0; i < len(empProj.Dates); i++ {
-		issuesPerDate, errs := db.Query("Select count(*) from issues where date=?", empProj.Dates[i])
-		if errs != nil {
-			log.Fatal(errs)
-		}
-		defer issuesPerDate.Close()
-		for issuesPerDate.Next() {
-			if errs := issuesPerDate.Scan(&issuesPerDateCount); errs != nil {
-				log.Fatal(err)
-			}
-			empProj.IssuesPerDate = controllers.UniqueInt(append(empProj.IssuesPerDate, issuesPerDateCount))
-
-		}
-	}
-	fmt.Println(empProj.Dates)
-	fmt.Println(empProj.IssuesPerDate)
-
-	for _, value := range empProj.Dates {
-		fmt.Println(value)
-	}
-	for _, value := range empProj.IssuesPerDate {
-		fmt.Println(value)
-	}
 	resProj = append(resProj, empProj)
 	fmt.Println(resProj)
 	controllers.Tmpl.ExecuteTemplate(w, "Dashboard", resProj)

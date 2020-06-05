@@ -8,4 +8,5 @@ type Issues struct {
 	Priority    string
 	Date        string
 	User_id     int
+	Kind        string
 }

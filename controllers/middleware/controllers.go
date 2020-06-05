@@ -231,7 +231,7 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 			log.Println("INSERT: Email" + email)
 			defer db.Close()
 		}
-		expirationTime := time.Now().Add(1 * time.Minute)
+		expirationTime := time.Now().Add(30 * time.Minute)
 		claims := &models.Claims{
 			Email: email,
 			Uid:   uid,
@@ -333,7 +333,7 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
 			log.Println("INSERT: Email" + email)
 			defer db.Close()
 		}
-		expirationTime := time.Now().Add(1 * time.Minute)
+		expirationTime := time.Now().Add(30 * time.Minute)
 		claims := &models.Claims{
 			Email: email,
 			Uid:   uid,
@@ -426,7 +426,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 				//fmt.Println(emp.Password)
 				fmt.Println("succesfully logged in as " + username)
 
-				expirationTime := time.Now().Add(1 * time.Minute)
+				expirationTime := time.Now().Add(30 * time.Minute)
 				claims := &models.Claims{
 					Username: username,
 					Uid:      uid,

@@ -19,6 +19,20 @@
     <textarea class="form-control" aria-label="With textarea" name="description"  value="{{ .Description }}" rows="3"required ></textarea><br />
   </div>
   <div>
+  <div class="input-group mb-3">
+  <div class="input-group-prepend">
+    <label class="input-group-text" for="inputGroupSelect01">Type</label>
+  </div>
+  <select class="custom-select" id="inputGroupSelect01" name="kind" value="{{ .Kind }}" required>
+    <option value="" selected disabled hidden>Choose here</option>
+    <option  value ="Issue">Issue</option>
+    <option value="Feature">Feature</option>
+    <option value="Note">Note</option>
+  </select><br />
+</div>
+  <div>
+
+
         <div class="input-group mb-3">
   <div class="input-group-prepend">
     <label class="input-group-text" for="inputGroupSelect01">Priority</label>

@@ -2,7 +2,7 @@
   {{ template "Header" }}
     {{ template "Menu"  }}
     <center>
-    <h2> All Bugs </h2>
+    <h2> All Tickets </h2>
     </center>
     <div class="container">
     <table class="table" >
@@ -11,6 +11,7 @@
         <th scope="col">Date</th>
         <th scope="col">Name</th>
         <th scope="col">Description</th>
+        <th scope="col">Type</th>
         <th scope="col">Priority</th>
       </tr>
        </thead>
@@ -20,6 +21,7 @@
         <td>{{ .Date }} </td> 
         <td> {{ .Name }} </td>
         <td>{{ .Description }} </td> 
+        <td>{{ .Kind }} </td> 
         <td>{{ .Priority }} </td> 
       </tr>
     {{ end }}
