@@ -15,6 +15,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/google/go-github/github"
 	"golang.org/x/crypto/bcrypt"
 
 	"golang.org/x/oauth2"
@@ -279,26 +280,17 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
-	resp, err := http.Get("https://api.github.com/user?access_token=" + token.AccessToken)
+	oauthClient := githubOauthConfig.Client(oauth2.NoContext, token)
+	client := github.NewClient(oauthClient)
+	user, _, err := client.Users.Get(oauth2.NoContext, "")
 	if err != nil {
+		fmt.Printf("client.Users.Get() faled with '%s'\n", err)
 		fmt.Println("couldn't get request", err.Error())
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", 301)
 		return
 	}
-	defer resp.Body.Close()
-	content, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("couldn't parse response", err.Error())
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
-		return
-	}
-	//fmt.Println(string(content))
-	js := string(content)
-	fmt.Println(js)
-	var result map[string]interface{}
-	// Unmarshal or Decode the JSON to the interface.
-	json.Unmarshal([]byte(js), &result)
-	email := fmt.Sprint(result["email"])
+	fmt.Printf("Logged in as GitHub user: %s\n", *user.Email)
+	email := *user.Email
 	fmt.Println(email)
 	db := DbConn()
 	var exists bool
