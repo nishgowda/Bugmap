@@ -15,7 +15,6 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/google/go-github/github"
 	"golang.org/x/crypto/bcrypt"
 
 	"golang.org/x/oauth2"
@@ -58,7 +57,7 @@ func initGoogle() {
 		RedirectURL:  redirectURL,
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
-		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email"},
+		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.profile"},
 		Endpoint:     google.Endpoint,
 	}
 }
@@ -167,7 +166,6 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
-
 	resp, err := http.Get("https://www.googleapis.com/oauth2/v3/userinfo?access_token=" + token.AccessToken)
 	if err != nil {
 		fmt.Println("couldn't get request", err.Error())
@@ -198,8 +196,9 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 	//emp := models.Users{}
 	//res := []models.Users{}
-	var uid int
+
 	for existsDb.Next() {
+		var uid int
 		err = existsDb.Scan(&exists)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -232,7 +231,7 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 			log.Println("INSERT: Email" + email + " | Password: " + hash)
 			defer db.Close()
 		}
-		expirationTime := time.Now().Add(30 * time.Minute)
+		expirationTime := time.Now().Add(5 * time.Minute)
 		claims := &models.Claims{
 			Email: email,
 			Uid:   uid,
@@ -250,7 +249,12 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 			Name:    "token",
 			Value:   tokenString,
 			Expires: expirationTime,
+			MaxAge:  60,
+			Path:    "/",
 		})
+		fmt.Println(tokenString)
+		fmt.Println(claims.Email)
+		fmt.Println(claims.Uid)
 	}
 
 	defer db.Close()
@@ -259,8 +263,8 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 }
 
 func HandleGitHubLogin(w http.ResponseWriter, r *http.Request) {
-	url := githubOauthConfig.AuthCodeURL(randState, oauth2.AccessTypeOnline)
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	url := githubOauthConfig.AuthCodeURL(randState)
+	http.Redirect(w, r, url, 301)
 }
 func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
 	state := r.FormValue("state")
@@ -269,26 +273,33 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
-
-	code := r.FormValue("code")
-	token, err := githubOauthConfig.Exchange(oauth2.NoContext, code)
+	token, err := githubOauthConfig.Exchange(oauth2.NoContext, r.FormValue("code"))
 	if err != nil {
 		fmt.Printf("oauthConf.Exchange() failed with '%s'\n", err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
-
-	oauthClient := githubOauthConfig.Client(oauth2.NoContext, token)
-	client := github.NewClient(oauthClient)
-	user, _, err := client.Users.Get(oauth2.NoContext, "")
+	resp, err := http.Get("https://api.github.com/user?access_token=" + token.AccessToken)
 	if err != nil {
-		fmt.Printf("client.Users.Get() faled with '%s'\n", err)
+		fmt.Println("couldn't get request", err.Error())
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
-	fmt.Printf("Logged in as GitHub user: %s\n", *user.Email)
-	email := *user.Email
-
+	defer resp.Body.Close()
+	content, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("couldn't parse response", err.Error())
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+	//fmt.Println(string(content))
+	js := string(content)
+	fmt.Println(js)
+	var result map[string]interface{}
+	// Unmarshal or Decode the JSON to the interface.
+	json.Unmarshal([]byte(js), &result)
+	email := fmt.Sprint(result["email"])
+	fmt.Println(email)
 	db := DbConn()
 	var exists bool
 	existsDb, err := db.Query("select exists(select email from users where email=?)", email)
@@ -297,8 +308,9 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
 	}
 	//emp := models.Users{}
 	//res := []models.Users{}
-	var uid int
+
 	for existsDb.Next() {
+		var uid int
 		err = existsDb.Scan(&exists)
 		if err != nil {
 			fmt.Println(err.Error())
@@ -320,15 +332,18 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
 				resExist = append(resExist, empExist)
 			}
 		} else {
-			insForm, err := db.Prepare("INSERT INTO Users(email) VALUES(?)")
+			insForm, err := db.Prepare("INSERT IGNORE INTO Users(email, password) VALUES(?,?)")
 			if err != nil {
 				fmt.Println(err.Error())
 			}
-			insForm.Exec(email)
-			log.Println("INSERT: Email" + email)
+
+			password := RandStringBytes(14)
+			hash, _ := HashPassword(password)
+			insForm.Exec(email, hash)
+			log.Println("INSERT: Email" + email + " | Password: " + hash)
 			defer db.Close()
 		}
-		expirationTime := time.Now().Add(30 * time.Minute)
+		expirationTime := time.Now().Add(5 * time.Minute)
 		claims := &models.Claims{
 			Email: email,
 			Uid:   uid,
@@ -338,6 +353,7 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
 		}
 		tokens := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 		tokenString, err := tokens.SignedString(jwtKey)
+		fmt.Println(tokenString)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -346,12 +362,15 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
 			Name:    "token",
 			Value:   tokenString,
 			Expires: expirationTime,
+			MaxAge:  60,
+			Path:    "/",
 		})
 
+		fmt.Println(claims.Email + " UID ")
+		fmt.Println(claims.Uid)
 	}
 	defer db.Close()
 	fmt.Println(email)
-
 	fmt.Println("dashboard?")
 	http.Redirect(w, r, "/dashboard", 301)
 
@@ -394,7 +413,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 					//fmt.Println(emp.Password)
 					fmt.Println("succesfully logged in as " + email)
 
-					expirationTime := time.Now().Add(30 * time.Minute)
+					expirationTime := time.Now().Add(5 * time.Minute)
 					claims := &models.Claims{
 						Email: email,
 						StandardClaims: jwt.StandardClaims{
@@ -508,7 +527,7 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 30*time.Second {
+	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 5*time.Second {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}

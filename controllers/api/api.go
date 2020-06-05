@@ -15,12 +15,15 @@ var jwtKey = controllers.JwtKey()
 
 func Dashboard(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("token")
+	fmt.Println(r.Cookie("token"))
 	if err != nil {
 		if err == http.ErrNoCookie {
 			w.WriteHeader(http.StatusUnauthorized)
+			fmt.Println("404")
 			return
 		}
 		w.WriteHeader(http.StatusBadRequest)
+		fmt.Println("401")
 		return
 	}
 
