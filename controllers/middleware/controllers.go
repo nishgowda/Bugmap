@@ -186,8 +186,10 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 	var result map[string]interface{}
 	// Unmarshal or Decode the JSON to the interface.
 	json.Unmarshal([]byte(js), &result)
+	name := fmt.Sprint(result["name"])
 	email := fmt.Sprint(result["email"])
 	fmt.Println(email)
+	fmt.Println(name)
 
 	db := DbConn()
 	var exists bool
