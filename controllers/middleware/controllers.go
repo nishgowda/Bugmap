@@ -374,13 +374,38 @@ func RandStringBytes(n int) string {
 	}
 	return string(b)
 }
-
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
 func Login(w http.ResponseWriter, r *http.Request) {
 	db := DbConn()
 	if r.Method == "POST" {
 		r.ParseForm()
 		username, password := r.PostFormValue("username"), r.PostFormValue("password")
 		ogPassword := password
+		currentData, err := db.Query("Select username from users")
+
+		var allUsersNames []string
+		var storedUsernames string
+		for currentData.Next() {
+			err = currentData.Scan(&storedUsernames)
+			if err != nil {
+				panic(err.Error())
+			}
+			allUsersNames = append(allUsersNames, storedUsernames)
+
+		}
+		fmt.Println(allUsersNames)
+		if contains(allUsersNames, username) == false {
+			Message := "Failed to Login"
+			Tmpl.ExecuteTemplate(w, "Login", Message)
+			return
+		}
 		selDb, err := db.Query("SELECT uid, username, password FROM USERS WHERE username=?", username)
 		if err != nil {
 			http.Redirect(w, r, "/", 301)
@@ -396,36 +421,34 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			emp.Uid = uid
 			emp.Password = password
 			emp.Username = username
-			if uid != 0 {
-				if CheckPasswordHash(ogPassword, emp.Password) == true {
-					res = append(res, emp)
-					//fmt.Println(emp.Password)
-					fmt.Println("succesfully logged in as " + username)
+			if CheckPasswordHash(ogPassword, emp.Password) == true {
+				res = append(res, emp)
+				//fmt.Println(emp.Password)
+				fmt.Println("succesfully logged in as " + username)
 
-					expirationTime := time.Now().Add(1 * time.Minute)
-					claims := &models.Claims{
-						Username: username,
-						Uid:      uid,
-						StandardClaims: jwt.StandardClaims{
-							ExpiresAt: expirationTime.Unix(),
-						},
-					}
-					tokens := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-					tokenString, err := tokens.SignedString(jwtKey)
-					if err != nil {
-						w.WriteHeader(http.StatusInternalServerError)
-						return
-					}
-					http.SetCookie(w, &http.Cookie{
-						Name:    "token",
-						Value:   tokenString,
-						Expires: expirationTime,
-					})
-
-				} else {
-					http.Redirect(w, r, "/", 301) // ---> Figure out a work around for this superfluous response.WriteHeader call from main.Login (main.go:129)
+				expirationTime := time.Now().Add(1 * time.Minute)
+				claims := &models.Claims{
+					Username: username,
+					Uid:      uid,
+					StandardClaims: jwt.StandardClaims{
+						ExpiresAt: expirationTime.Unix(),
+					},
 				}
+				tokens := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+				tokenString, err := tokens.SignedString(jwtKey)
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				http.SetCookie(w, &http.Cookie{
+					Name:    "token",
+					Value:   tokenString,
+					Expires: expirationTime,
+				})
 
+			} else {
+				Message := "Failed to Login"
+				Tmpl.ExecuteTemplate(w, "Login", Message) // ---> Figure out a work around for this superfluous response.WriteHeader call from main.Login (main.go:129)
 			}
 
 		}
@@ -434,6 +457,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	defer db.Close()
 	http.Redirect(w, r, "/dashboard", 301)
+}
+func FailedLogin(w http.ResponseWriter, r *http.Request) {
+	Tmpl.ExecuteTemplate(w, "FailedLogin", nil)
+
 }
 
 func LogoutPage(w http.ResponseWriter, r *http.Request) {
@@ -470,7 +497,8 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(allUsersNames)
 		for i := 0; i < len(allUsersNames); i++ {
 			if allUsersNames[i] == username {
-				http.Redirect(w, r, "/", 301)
+				Message := "Username is already taken"
+				Tmpl.ExecuteTemplate(w, "Register", Message)
 				return
 			}
 		}
