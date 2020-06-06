@@ -42,6 +42,12 @@
          </div>
          </div> 
 
+          <div class="card text-dark bg-light mb-3">
+        <div class="card-body">
+         <canvas id="bar-chart" style="height: 300px; width: 100%;"></canvas>    
+         </div>
+         </div> 
+
 
             </div>
 <script type="text/javascript">
@@ -68,6 +74,30 @@ var chart = new Chart(ctx, {
     }
 });
 
+new Chart(document.getElementById("bar-chart"), {
+    type: 'bar',
+    data: {
+
+      labels: ["Feature", "Issue", "Note"],
+      datasets: [
+        {
+          label: "Number of Tickets",
+          {{ range .}}
+          backgroundColor: ["#3e95cd","#8e5ea2","#3cba9f"],
+          data: [{{ .NumFeature }},{{ .NumIssue }},{{ .NumNote }}]
+          {{ end }}
+
+        }
+      ]
+    },
+    options: {
+      legend: { display: false },
+      title: {
+        display: true,
+        text: "Number of Tickets per Type"
+      }
+    }
+});
 
 
 </script>

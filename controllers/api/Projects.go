@@ -47,13 +47,14 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 	db := controllers.DbConn()
 	fmt.Println(claims.Email)
 	fmt.Println(claims.Uid)
+	empProj := models.Totals{}
+	resProj := []models.Totals{}
 	rows, err := db.Query("SELECT COUNT(*) FROM Projects where user_id=?", claims.Uid)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer rows.Close()
-	empProj := models.Totals{}
-	resProj := []models.Totals{}
+
 	var countProjects int
 
 	for rows.Next() {
@@ -118,6 +119,44 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		if errs := critPriorityRows.Scan(&CriticalPriorityCount); errs != nil {
 			log.Fatal(err)
 		}
+
+	}
+
+	numFeatureDb, err := db.Query("Select count(*) from issues where kind='Feature' and user_id=?", claims.Uid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer numFeatureDb.Close()
+	var featureCount int
+	for numFeatureDb.Next() {
+		if errs := numFeatureDb.Scan(&featureCount); errs != nil {
+			log.Fatal(err)
+		}
+
+	}
+
+	numIssueDb, err := db.Query("Select count(*) from issues where kind='Issue' and user_id=?", claims.Uid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer numIssueDb.Close()
+	var issueCount int
+	for numIssueDb.Next() {
+		if errs := numIssueDb.Scan(&issueCount); errs != nil {
+			log.Fatal(err)
+		}
+	}
+
+	numNoteDb, err := db.Query("Select count(*) from issues where kind='Note' and user_id=?", claims.Uid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer numNoteDb.Close()
+	var noteCount int
+	for numNoteDb.Next() {
+		if errs := numNoteDb.Scan(&noteCount); errs != nil {
+			log.Fatal(err)
+		}
 	}
 
 	empProj.NumLow = LowPriorityCount
@@ -126,6 +165,9 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 	empProj.NumCritical = CriticalPriorityCount
 	empProj.NumIssues = countIssues
 	empProj.NumProjects = countProjects
+	empProj.NumFeature = featureCount
+	empProj.NumIssue = issueCount
+	empProj.NumNote = noteCount
 
 	//emp := models.Totals{}
 	//res := []models.Totals{}
