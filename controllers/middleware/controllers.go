@@ -261,6 +261,9 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/dashboard", 301)
 }
 
+var JsonURL string
+var GithubAccess = false
+
 func HandleGitHubLogin(w http.ResponseWriter, r *http.Request) {
 	url := githubOauthConfig.AuthCodeURL(randState)
 	http.Redirect(w, r, url, 301)
@@ -288,6 +291,7 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Printf("Logged in as GitHub user: %s\n", *user.Email)
+	JsonURL = (*user.ReposURL)
 	email := *user.Email
 	fmt.Println(email)
 	db := DbConn()
@@ -358,6 +362,7 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(claims.Email + " UID ")
 		fmt.Println(claims.Uid)
 	}
+	GithubAccess = true
 	defer db.Close()
 	fmt.Println(email)
 	fmt.Println("dashboard?")

@@ -27,6 +27,7 @@ func HandlerFunc() {
 	http.HandleFunc("/bugs", api.DisplayIssues)
 	http.HandleFunc("/showproject", api.ShowProject)
 	http.HandleFunc("/newproject", api.NewProject)
+	http.HandleFunc("/importrepos", api.ImportRepos)
 	http.HandleFunc("/editproject", api.EditProject)
 	http.HandleFunc("/insertproject", api.InsertProject)
 	http.HandleFunc("/updateproject", api.UpdateProject)

@@ -2,10 +2,13 @@ package api
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	controllers "models/controllers/middleware"
 	"models/models"
 	"net/http"
+
+	jparse "github.com/nishgowda/Jparse"
 
 	"github.com/dgrijalva/jwt-go"
 )
@@ -173,7 +176,8 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 	//res := []models.Totals{}
 
 	resProj = append(resProj, empProj)
-	fmt.Println(resProj)
+	//fmt.Println(resProj)
+	fmt.Println(controllers.GithubAccess)
 	controllers.Tmpl.ExecuteTemplate(w, "Dashboard", resProj)
 	defer db.Close()
 
@@ -189,7 +193,6 @@ func DisplayProjects(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", 301)
 		return
 	}
-
 	tknStr := c.Value
 	claims := &models.Claims{}
 
@@ -230,9 +233,67 @@ func DisplayProjects(w http.ResponseWriter, r *http.Request) {
 		res = append(res, emp)
 	}
 	//fmt.Println(uid)
-	fmt.Println(res)
+	//fmt.Println(res)
 	controllers.Tmpl.ExecuteTemplate(w, "DisplayProjects", res)
 	defer db.Close()
+}
+
+func ImportRepos(w http.ResponseWriter, r *http.Request) {
+	if controllers.GithubAccess == true {
+		c, err := r.Cookie("token")
+		if err != nil {
+			if err == http.ErrNoCookie {
+				http.Redirect(w, r, "/", 301)
+				return
+			}
+			http.Redirect(w, r, "/", 301)
+			return
+		}
+
+		tknStr := c.Value
+		claims := &models.Claims{}
+
+		tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
+			return jwtKey, nil
+		})
+		if err != nil {
+			if err == jwt.ErrSignatureInvalid {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if !tkn.Valid {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		res, err := http.Get(controllers.JsonURL)
+		if err != nil {
+			log.Fatal(err)
+		}
+		body, err := ioutil.ReadAll(res.Body)
+		js := string(body)
+		names := jparse.SimpleArrayParse([]string{"name"}, js)
+		description := jparse.SimpleArrayParse([]string{"description"}, js)
+		languages := jparse.SimpleArrayParse([]string{"language"}, js)
+
+		db := controllers.DbConn()
+		for i := 0; i < len(names); i++ {
+			nameDb, err := db.Prepare("insert ignore into projects(name, description, user_id, technologies) VALUES(?,?,?,?)")
+			if err != nil {
+				log.Fatal(err)
+			}
+			nameDb.Exec(names[i], description[i], claims.Uid, languages[i])
+			log.Println("INSERT: Name: " + names[i] + " | Description: " + description[i] + " | Technologies: " + languages[i])
+		}
+
+		defer db.Close()
+		http.Redirect(w, r, "/dashboard", 301)
+	} else {
+		fmt.Println("redirect")
+		http.Redirect(w, r, "/githublogin", 301)
+	}
 }
 
 func NewProject(w http.ResponseWriter, r *http.Request) {
