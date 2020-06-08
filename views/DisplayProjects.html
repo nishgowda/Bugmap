@@ -4,9 +4,10 @@
 
     <center>
     <h2> Your Projects </h2>
-            <a class="waves-effect waves-light btn green"  onclick="window.location.href='/importrepos';">Import from Github</a>
-
     
+    <a class="waves-effect waves-dark btn green"  onclick="window.location.href='/importrepos';">Import from Github</a>
+
+
     </center>
     <div class="container">
 
@@ -15,9 +16,11 @@
   <div class="card">
     <div class="card-content">
       <span class="card-title activator grey-text text-darken-4">{{.ProjectName}}<i class="material-icons right">more_vert</i></span>
-      <p><a href="/showproject?id={{ .Id }}">View</a></p>
-       <p><a href="/editproject?id={{ .Id }}">Edit</a></p>
-        <p><a href="/deleteproject?id={{ .Id }}">Resolive</a></p>
+              <div class="card-action">
+          <a href="/showproject?id={{ .Id }}">View</a>
+          <a href="/editproject?id={{ .Id }}">Edit</a>
+          <a href="/deleteproject?id={{ .Id }}">Resolive</a>
+        </div>
     </div>
     <div class="card-reveal">
       <span class="card-title grey-text text-darken-4">Description: {{.Description}}<i class="material-icons right">close</i></span>
@@ -29,7 +32,7 @@
   </div>
           <center>
       <div>
-        <a class="btn-floating btn-large waves-effect waves-light blue" onclick="window.location.href='/newproject';"><i class="material-icons">add</i></a>
+        <a class="btn-floating btn-large waves-effect waves" onclick="window.location.href='/newproject';" style="background-color: #1B4192"><i class="material-icons">add</i></a>
     </center>
 
 

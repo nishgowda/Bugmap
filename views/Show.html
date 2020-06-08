@@ -1,20 +1,30 @@
 {{ define "Show" }}
   {{ template "Header" }}
     {{ template "Menu"  }}
-    <div class="container">
+   <div class="container">
     <center>
-      <div class="card text-dark bg-light mb-3">
-        <div class="card-body">
-          <h5 class="card-title">{{.Name}}</h5>
-          <h6 class="card-subtitle mb-2 text-muted">{{.Kind}}</h6>
-          <h7 class="card-subtitle mb-2 text-muted">{{.Priority}}</h6>
-          <h8 class="card-subtitle mb-2 text-muted">{{.Date}}</h7>
-          <p class="card-text">{{.Description}}</p>
-          <a href="/edit?id={{ .Id }}" class="card-link">Edit</a>
-          <a href="delete?id={{ .Id }}" class="card-link">Delete</a>
+      <div class="row">
+    <div class="col s6 offset-s3">
+      <div class="card">
+        <div class="card-content">
+          <span class="card-title">{{.Name}}</span>
+          <p>Technologies: {{.Kind}}</p>
+          <p>Priority: {{.Priority}}</p>
+            <p>Date: {{.Date}}</p>
+          <p>Description: {{.Description}}</p>
         </div>
-      </div>  
-      </center>
+        <div class="card-action">
+         <a href="/edit?id={{ .Id }}" class="card-link">Edit</a>
+          <a href="/delete?id={{ .Id }}" class="card-link">Delete</a>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+       <div>
+       <button class="btn"  onclick="window.location.href='/index';" style="background-color: #1B4192">View Tickets in {{.ProjectName}}</button>
+       </div>
+          </center>
     </div>
   {{ template "Footer" }}
 {{ end }}
