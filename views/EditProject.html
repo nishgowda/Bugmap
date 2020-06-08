@@ -1,35 +1,42 @@
 {{ define "EditProject" }}
   {{ template "Header" }}
     {{ template "Menu" }} 
-    <center>
+   
+   <center>
     <div class="container">
    <h2>Edit Project</h2>  
-    <form method="POST" action="updateproject">
-      <input type="hidden" name="uid" value="{{ .Id }}" />
-      <div class="input-group mb-3">
-      <div class="input-group-prepend">
-        <span class="input-group-text" id="basic-addon1">Name</span>
+     <div class="row">
+    <form class="col s12" method="POST" action="inserproject">
+      <div class="row">
+        <div class="input-field col s12">
+          <input placeholder="Name" id="first_name" type="text" class="validate" name="name" value= "{{.ProjectName}}"  required >
+          <label for="first_name">Name</label>
+        </div>
+        </div>
+        <div class="row">
+        <div class="input-field col s12">
+          <textarea id="textarea1" class="materialize-textarea" name="description" value= "{{.Description}}" required></textarea>
+          <label for="textarea1">Description</label>
+        </div>
       </div>
-      <input type="text" class="form-control" placeholder="Name" aria-label="Username" aria-describedby="basic-addon1" value="{{ .ProjectName }}" name="name" required><br />
-    </div>
-      <div class="input-group">
-    <div class="input-group-prepend">
-      <span class="input-group-text">Description</span>
-    </div>
-    <textarea class="form-control" aria-label="With textarea" name="description"  value="{{ .Description }}" rows="3"required ></textarea><br />
-  </div>
-  <div>
-  </div>
-        <div class="input-group mb-3">
-      <div class="input-group-prepend">
-        <span class="input-group-text" id="basic-addon1">Technologies</span>
+          <div class="row">
+        <div class="input-field col s12">
+          <input id="tech"  type="text" class="validate" name="technologies" value= "{{.Technologies}}" required>
+          <label for="tech">Technologies</label>
+        </div>
       </div>
-      <input type="text" class="form-control" placeholder="" aria-label="Technologies" aria-describedby="basic-addon1" value="{{ .Technologies }}" name="technologies" required><br />
-    </div>
-      <input type="submit" class="btn btn-dark" value="Save" />
+
+    <div>
+        <div>
+  <input type="submit" class="btn" style="background-color: #33A8FF" value="Save" />
       </div>
-    </form><br />    
+    
+    </form>
+
+    </div>
     </center>
-    </div>
+       
+    <div>
+ 
   {{ template "Footer" }}
 {{ end }}

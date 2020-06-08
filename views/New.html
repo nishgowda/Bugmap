@@ -8,19 +8,19 @@
     <form class="col s12" method="POST" action="insert">
       <div class="row">
         <div class="input-field col s12">
-          <input placeholder="Name" id="first_name" type="text" class="validate" name="name">
+          <input placeholder="Name" id="first_name" type="text" class="validate" name="name" required
           <label for="first_name">Name</label>
         </div>
         </div>
         <div class="row">
         <div class="input-field col s12">
-          <textarea id="textarea1" class="materialize-textarea" name="description"></textarea>
+          <textarea id="textarea1" class="materialize-textarea" name="description" required></textarea>
           <label for="textarea1">Description</label>
         </div>
       </div>
           <div class="row">
         <div class="input-field col s12">
-    <select name="kind">
+    <select name="kind" required>
       <option value="" disabled selected>Choose your option</option>
       <option value="Feature">Feature</option>
       <option value="Issue">Issue</option>
@@ -32,7 +32,7 @@
 
     <div class="row">
         <div class="input-field col s12">
-    <select name="priority">
+    <select name="priority" required>
       <option value="" disabled selected>Choose your option</option>
       <option value="Low">Low</option>
       <option value="Medium">Medium</option>
