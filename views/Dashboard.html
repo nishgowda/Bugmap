@@ -25,7 +25,7 @@
       <div class="card bg-light mb-3">
         <div class="card-body">
          {{ range .}}
-          <h5 class="card-title">Ongoing Tickets:  <span class="badge badge-light">{{.NumIssues}}</span> </h5>
+          <h5 class="card-title">Pending Tickets:  <span class="badge badge-light">{{.NumIssues}}</span> </h5>
      
           {{ end}}
            <h6 class="card-subtitle mb-2 text-muted"></h6>
@@ -75,7 +75,7 @@ var chart = new Chart(ctx, {
 });
 
 new Chart(document.getElementById("bar-chart"), {
-    type: 'bar',
+    type: 'pie',
     data: {
 
       labels: ["Feature", "Issue", "Note"],

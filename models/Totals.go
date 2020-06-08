@@ -11,3 +11,8 @@ type Totals struct {
 	NumIssue    int
 	NumNote     int
 }
+
+type Ratios struct {
+	Dates         string
+	IssuesPerDate int
+}

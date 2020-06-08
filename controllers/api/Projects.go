@@ -161,7 +161,36 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 	}
-
+	emp := models.Ratios{}
+	res := []models.Ratios{}
+	datesDb, err := db.Query("Select date from issues where user_id=?", claims.Uid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var dates string
+	for datesDb.Next() {
+		err = datesDb.Scan(&dates)
+		if err != nil {
+			log.Fatal(err)
+		}
+		emp.Dates = dates
+		res = append(res, emp)
+	}
+	defer datesDb.Close()
+	issuesPerDate, err := db.Query("select count(*) from issues where date=? and user_id=?", emp.Dates, claims.Uid)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer datesDb.Close()
+	var issueDateCount int
+	for issuesPerDate.Next() {
+		err = issuesPerDate.Scan(&issueDateCount)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	emp.IssuesPerDate = issueDateCount
+	res = append(res, emp)
 	empProj.NumLow = LowPriorityCount
 	empProj.NumMedium = MedPriorityCount
 	empProj.NumHigh = HighPriorityCount
@@ -176,11 +205,13 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 	//res := []models.Totals{}
 
 	resProj = append(resProj, empProj)
-	//fmt.Println(resProj)
+	fmt.Println(resProj)
+	fmt.Println(res)
 	fmt.Println(controllers.GithubAccess)
-	controllers.Tmpl.ExecuteTemplate(w, "Dashboard", resProj)
-	defer db.Close()
 
+	controllers.Tmpl.ExecuteTemplate(w, "Dashboard", resProj)
+	controllers.Tmpl.ExecuteTemplate(w, "Charts", res)
+	defer db.Close()
 }
 
 func DisplayProjects(w http.ResponseWriter, r *http.Request) {
@@ -239,61 +270,56 @@ func DisplayProjects(w http.ResponseWriter, r *http.Request) {
 }
 
 func ImportRepos(w http.ResponseWriter, r *http.Request) {
-	if controllers.GithubAccess == true {
-		c, err := r.Cookie("token")
-		if err != nil {
-			if err == http.ErrNoCookie {
-				http.Redirect(w, r, "/", 301)
-				return
-			}
+	c, err := r.Cookie("token")
+	if err != nil {
+		if err == http.ErrNoCookie {
 			http.Redirect(w, r, "/", 301)
 			return
 		}
+		http.Redirect(w, r, "/", 301)
+		return
+	}
+	tknStr := c.Value
+	claims := &models.Claims{}
 
-		tknStr := c.Value
-		claims := &models.Claims{}
-
-		tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
-			return jwtKey, nil
-		})
-		if err != nil {
-			if err == jwt.ErrSignatureInvalid {
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-			w.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		if !tkn.Valid {
+	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		res, err := http.Get(controllers.JsonURL)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if !tkn.Valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	res, err := http.Get(controllers.JsonURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	js := string(body)
+	names := jparse.SimpleArrayParse([]string{"name"}, js)
+	description := jparse.SimpleArrayParse([]string{"description"}, js)
+	languages := jparse.SimpleArrayParse([]string{"language"}, js)
+
+	db := controllers.DbConn()
+	for i := 0; i < len(names); i++ {
+		nameDb, err := db.Prepare("insert ignore into projects(name, description, user_id, technologies) VALUES(?,?,?,?)")
 		if err != nil {
 			log.Fatal(err)
 		}
-		body, err := ioutil.ReadAll(res.Body)
-		js := string(body)
-		names := jparse.SimpleArrayParse([]string{"name"}, js)
-		description := jparse.SimpleArrayParse([]string{"description"}, js)
-		languages := jparse.SimpleArrayParse([]string{"language"}, js)
-
-		db := controllers.DbConn()
-		for i := 0; i < len(names); i++ {
-			nameDb, err := db.Prepare("insert ignore into projects(name, description, user_id, technologies) VALUES(?,?,?,?)")
-			if err != nil {
-				log.Fatal(err)
-			}
-			nameDb.Exec(names[i], description[i], claims.Uid, languages[i])
-			log.Println("INSERT: Name: " + names[i] + " | Description: " + description[i] + " | Technologies: " + languages[i])
-		}
-
-		defer db.Close()
-		http.Redirect(w, r, "/dashboard", 301)
-	} else {
-		fmt.Println("redirect")
-		http.Redirect(w, r, "/githublogin", 301)
+		nameDb.Exec(names[i], description[i], claims.Uid, languages[i])
+		log.Println("INSERT: Name: " + names[i] + " | Description: " + description[i] + " | Technologies: " + languages[i])
 	}
+
+	defer db.Close()
+	http.Redirect(w, r, "/dashboard", 301)
+
 }
 
 func NewProject(w http.ResponseWriter, r *http.Request) {
