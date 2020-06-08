@@ -102,6 +102,18 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db := controllers.DbConn()
+	projDB, err := db.Query("Select name from projects where id=? and user_id=?", controllers.Project_id, claims.Uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	var projectName string
+	for projDB.Next() {
+		err = projDB.Scan(&projectName)
+		if err != nil {
+			panic(err.Error())
+		}
+	}
+
 	selDB, err := db.Query("SELECT * FROM Issues WHERE project_id=? and user_id=? ORDER BY id DESC", controllers.Project_id, claims.Uid)
 	if err != nil {
 		panic(err.Error())
@@ -123,8 +135,11 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		emp.Priority = priority
 		emp.Date = date
 		emp.Kind = kind
+		emp.ProjectName = projectName
 		res = append(res, emp)
 	}
+	fmt.Println(projectName)
+
 	//fmt.Print("user id is ")
 	//fmt.Println(uid)
 	controllers.Tmpl.ExecuteTemplate(w, "Index", res)

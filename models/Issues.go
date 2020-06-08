@@ -9,4 +9,5 @@ type Issues struct {
 	Date        string
 	User_id     int
 	Kind        string
+	ProjectName string
 }

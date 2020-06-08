@@ -10,7 +10,6 @@ import (
 
 func HandlerFunc() {
 	log.Println("Server started on: http://localhost:8080")
-
 	http.HandleFunc("/", controllers.Home)
 	http.HandleFunc("/login", controllers.Login)
 	http.HandleFunc("/refresh", controllers.RefreshToken)

@@ -17,14 +17,12 @@ var jwtKey = controllers.JwtKey()
 
 func Dashboard(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("token")
-	fmt.Println(r.Cookie("token"))
+	//fmt.Println(r.Cookie("token"))
 	if err != nil {
 		if err == http.ErrNoCookie {
-			http.Redirect(w, r, "/", 301)
 			fmt.Println("404")
 			return
 		}
-		http.Redirect(w, r, "/", 301)
 		fmt.Println("401")
 		return
 	}
