@@ -1,4 +1,5 @@
 {{ define "Menu" }}
+{{ template "Header"}}
 <style>
 body {
   font-family: "Lato", sans-serif;
@@ -67,32 +68,31 @@ body {
    document.getElementById("sidebar").classList.toggle('active');
   }
  </script>
-<nav class="navbar navbar-expand-lg  sticky-top navbar-light bg-light">
-  <a class="navbar-brand" href="#">Bugmap</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarNavDropdown">
-    <ul class="navbar-nav">
-      <li class="nav-item active">
-        <a class="nav-link" href="/displayprojects">Projects</a>
-      </li>
-      <li class="nav-item active">
-        <a class="nav-link" href="/bugs">Tickets</a>
-      </li>
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Profile
-        </a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-          <a class="dropdown-item" href="/dashboard">Dashboard</a>
-          <a class="dropdown-item" href="/logoutpage">Logout</a>
-        </div>
-      </li>
+<!-- Dropdown Structure -->
+
+<nav class="blue">
+  <div class="nav-wrapper">
+    <a href="#" class="brand-logo center">Bugmap</a>
+    <ul class="right hide-on-med-and-down">
+      <li><a href="/displayprojects">Projects</a></li>
+      <li><a href="/bugs">Tickets</a></li>
+      <!-- Dropdown Trigger -->
+      <li><a class="dropdown-trigger" href="#!" data-target="dropdown1">Profile<i class="material-icons right">arrow_drop_down</i></a></li>
+      <ul id="dropdown1" class="dropdown-content">
+  <li><a href="/dashboard">Dashboard</a></li>
+  <li><a href="/logoutpage">Logout</a></li>
+  <li class="divider"></li>
+</ul>
     </ul>
   </div>
 </nav>
+        
+
 <script>
+$(".dropdown-trigger").dropdown();
+
+
+
 function openNav() {
   document.getElementById("mySidebar").style.width = "250px";
   document.getElementById("main").style.marginLeft = "250px";

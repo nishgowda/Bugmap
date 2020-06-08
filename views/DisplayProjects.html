@@ -4,45 +4,32 @@
 
     <center>
     <h2> Your Projects </h2>
-    </center>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <style>
-.btn {
-  background-color: Black;
-  border: none;
-  color: white;
-  padding: 12px 16px;
-  font-size: 16px;
-  cursor: pointer;
-}
+            <a class="waves-effect waves-light btn green"  onclick="window.location.href='/importrepos';">Import from Github</a>
 
-/* Darker background on mouse-over */
-.btn:hover {
-  background-color: RoyalBlue;
-}
-</style>
+    
+    </center>
     <div class="container">
-      <div class="row">
-            {{ range .}}
-  <div class="col-sm-6">
-      <div class="card text-dark bg-light mb-3">
-        <div class="card-body">
-          <h5 class="card-title">Name: {{.ProjectName}}</h5>
-           <h6 class="card-subtitle mb-2 text-muted">Tech: {{.Technologies}}</h6>
-          <p class="card-text">Description: {{.Description}}</p>
-       <a href="/showproject?id={{ .Id }}">View</a>
-      <a href="/editproject?id={{ .Id }}">Edit</a></td>
-       <a href="/deleteproject?id={{ .Id }}">Resolve</a>
-        </div>
-      </div>  
-      </div>
-      {{ end }}
-      </div>
-      </div>
+
+  <div class="row">
+    {{ range .}}
+  <div class="card">
+    <div class="card-content">
+      <span class="card-title activator grey-text text-darken-4">{{.ProjectName}}<i class="material-icons right">more_vert</i></span>
+      <p><a href="/showproject?id={{ .Id }}">View</a></p>
+       <p><a href="/editproject?id={{ .Id }}">Edit</a></p>
+        <p><a href="/deleteproject?id={{ .Id }}">Resolive</a></p>
+    </div>
+    <div class="card-reveal">
+      <span class="card-title grey-text text-darken-4">Description : {{.Description}}<i class="material-icons right">close</i></span>
+      <p>Technologies {{.Technologies}}</p>
+    </div>
+
+  </div>
+          {{ end }}
+  </div>
           <center>
       <div>
-    <button class="btn" onclick="window.location.href='/newproject';"><i class="fa fa-plus-circle"></i> Add a Project</button>
-     <button class="btn" onclick="window.location.href='/importrepos';"><i class="fa fa-plus-circle"></i> Import Github Repositories</button>
+        <a class="btn-floating btn-large waves-effect waves-light blue" onclick="window.location.href='/newproject';"><i class="material-icons">add</i></a>
     </center>
 
 

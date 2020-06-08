@@ -1,58 +1,71 @@
 {{ define "New" }}
   {{ template "Header" }}
     {{ template "Menu" }} 
-    <center>
+     <center>
     <div class="container">
    <h2>New Ticket</h2>  
-    <form method="POST" action="insert">
-        <div class="input-group mb-3">
-      <div class="input-group-prepend">
-        <span class="input-group-text" id="basic-addon1">Name</span>
+     <div class="row">
+    <form class="col s12" method="POST" action="insert">
+      <div class="row">
+        <div class="input-field col s12">
+          <input placeholder="Name" id="first_name" type="text" class="validate" name="name">
+          <label for="first_name">Name</label>
+        </div>
+        </div>
+        <div class="row">
+        <div class="input-field col s12">
+          <textarea id="textarea1" class="materialize-textarea" name="description"></textarea>
+          <label for="textarea1">Description</label>
+        </div>
       </div>
-      <input type="text" class="form-control" placeholder="Name" aria-label="Username" aria-describedby="basic-addon1" name="name" required><br />
+          <div class="row">
+        <div class="input-field col s12">
+    <select name="kind">
+      <option value="" disabled selected>Choose your option</option>
+      <option value="Feature">Feature</option>
+      <option value="Issue">Issue</option>
+      <option value="Note">Note</option>
+    </select>
+    <label>Type</label>
+  </div>
     </div>
-        <div class="input-group">
-    <div class="input-group-prepend">
-      <span class="input-group-text">Description</span>
+
+    <div class="row">
+        <div class="input-field col s12">
+    <select name="priority">
+      <option value="" disabled selected>Choose your option</option>
+      <option value="Low">Low</option>
+      <option value="Medium">Medium</option>
+      <option value="High">High</option>
+      <option value="Critical">Critical</option>
+    </select>
+    <label>Priority</label>
+  </div>
     </div>
-    <textarea class="form-control" aria-label="With textarea" name="description" rows="3" required></textarea><br />
-  </div>
-
-
-<div class="input-group mb-3">
-  <div class="input-group-prepend">
-    <label class="input-group-text" for="inputGroupSelect01">Type</label>
-  </div>
-  <div>
-  <select class="custom-select" id="inputGroupSelect01" name="kind" required>
-    <option value="" selected disabled hidden>Choose here</option>
-    <option  value ="Issue">Issue</option>
-    <option value="Feature" >Feature</option>
-    <option value="Note" >Note</option>
-  </select><br />
-</div>
-
-      <div class="input-group mb-3">
-  <div class="input-group-prepend">
-    <label class="input-group-text" for="inputGroupSelect01">Priority</label>
-  </div>
-  <div>
-  <select class="custom-select" id="inputGroupSelect01" name="priority" required>
-    <option value="" selected disabled hidden>Choose here</option>
-    <option  value ="Low">Low</option>
-    <option value="Medium" >Medium</option>
-    <option value="High" >High</option>
-    <option  value="Critical">Critical</option>
-  </select><br />
-</div>
-
-
-
-    <div>
-      <input type="submit" class="btn btn-dark" value="Save" />
+        <div>
+      <input type="submit" class="btn" style="background-color: #33A8FF" value="Save" />
       </div>
     </form>
+    </div>
     </center>
+        <script>
+    
+  document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('select');
+    var instances = M.FormSelect.init(elems, options);
+  });
+
+  // Or with jQuery
+
+  $(document).ready(function(){
+    $('select').formSelect();
+  });
+
+    </script>
     <div>
+
+
+
+   
   {{ template "Footer" }}
 {{ end }}
