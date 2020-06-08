@@ -58,7 +58,7 @@ func initGoogle() {
 		RedirectURL:  redirectURL,
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
-		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.profile"},
+		Scopes:       []string{"https://www.googleapis.com/auth/userinfo.email"},
 		Endpoint:     google.Endpoint,
 	}
 }
@@ -167,7 +167,7 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
-	resp, err := http.Get("https://www.googleapis.com/oauth2/v3/userinfo?access_token=" + token.AccessToken)
+	resp, err := http.Get("https://www.googleapis.com/oauth2/v2/userinfo?access_token=" + token.AccessToken)
 	if err != nil {
 		fmt.Println("couldn't get request", err.Error())
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)

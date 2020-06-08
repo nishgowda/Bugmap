@@ -2,9 +2,9 @@
   {{ template "Header" }}
     {{ template "Menu"  }}
     <center>
-      {{ range .  }}
-    <h2>Pending Tickets in {{.ProjectName}} </h2>
-    {{ end }}
+
+    <h2>Pending Tickets in {{range .}} {{.ProjectName}}  {{ end }}</h2>
+
         </center>
     <div class="container">
     <table class="table table-hover table-striped" >
