@@ -4,10 +4,8 @@
 
     <center>
     <h2> Your Projects </h2>
-    
-    <a class="waves-effect waves-dark btn green"  onclick="window.location.href='/importrepos';">Import from Github</a>
-
-
+         <a class="btn-floating btn-large waves-effect waves" onclick="window.location.href='/newproject';" style="background-color: #1B4192"><i class="material-icons">add</i></a>
+   
     </center>
     <div class="container">
 
@@ -20,6 +18,7 @@
           <a href="/showproject?id={{ .Id }}">View</a>
           <a href="/editproject?id={{ .Id }}">Edit</a>
           <a href="/deleteproject?id={{ .Id }}">Resolive</a>
+   
         </div>
     </div>
     <div class="card-reveal">
@@ -30,9 +29,10 @@
   </div>
           {{ end }}
   </div>
-          <center>
+   
       <div>
-        <a class="btn-floating btn-large waves-effect waves" onclick="window.location.href='/newproject';" style="background-color: #1B4192"><i class="material-icons">add</i></a>
+         <center>
+        <a class="waves-effect waves-dark btn green"  onclick="window.location.href='/importrepos';">Import from Github</a>
     </center>
 
 

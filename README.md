@@ -4,7 +4,7 @@ Bugmap is an issue management system for developers to monitor bugs and issues f
 
 ## Installation:
 ```
-go get github.com/nishgowda/Blips
+go get github.com/nishgowda/Bugmap
 ```
 
 ### How to Run: 
@@ -20,7 +20,7 @@ go get github.com/nishgowda/Blips
 ### Frontend: 
 - HTML
 - CSS
-- Bootsrap
+- Materialize
 - Javascript
 
 ## To Do:

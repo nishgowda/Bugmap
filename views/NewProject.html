@@ -6,7 +6,7 @@
     <div class="container">
    <h2>New Project</h2>  
      <div class="row">
-    <form class="col s12" method="POST" action="inserproject">
+    <form class="col s12" method="POST" action="insertproject">
       <div class="row">
         <div class="input-field col s12">
           <input placeholder="Name" id="first_name" type="text" class="validate" name="name" required>
@@ -21,14 +21,14 @@
       </div>
           <div class="row">
         <div class="input-field col s12">
-          <input id="tech" class="validate" name="technologies" required>
+          <input id="tech"  type="text" class="validate" name="technologies" required>
           <label for="tech">Technologies</label>
         </div>
       </div>
       
     <div>
         <div>
-  <input type="submit" class="btn" style="background-color: #1B4192" value="Save" />
+  <input type="submit" class="btn" style="background-color: #1B4192">
       </div>
     
     </form>
@@ -37,6 +37,10 @@
     </center>
        
     <div>
+    <script>
+  M.resolved({html: 'Saved'})
+  </script>
+
  
   {{ template "Footer" }}
 {{ end }}

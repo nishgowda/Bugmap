@@ -50,6 +50,7 @@ func DisplayIssues(w http.ResponseWriter, r *http.Request) {
 	for selDB.Next() {
 		var id, user_id int
 		var name, description, priority, date, kind string
+		var projectName string
 		err = selDB.Scan(&id, &name, &description, &priority, &date, &controllers.Project_id, &user_id, &kind)
 		if err != nil {
 			panic(err.Error())
@@ -61,6 +62,19 @@ func DisplayIssues(w http.ResponseWriter, r *http.Request) {
 		emp.Priority = priority
 		emp.Date = date
 		emp.Kind = kind
+		emp.Project_id = controllers.Project_id
+
+		projDb, err := db.Query("Select name from projects where id=? and user_id=?", emp.Project_id, claims.Uid)
+		if err != nil {
+			panic(err.Error())
+		}
+		for projDb.Next() {
+			err = projDb.Scan(&projectName)
+			if err != nil {
+				panic(err.Error())
+			}
+			emp.ProjectName = projectName
+		}
 		res = append(res, emp)
 	}
 	//fmt.Print("display users id is ")
