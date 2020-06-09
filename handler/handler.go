@@ -23,6 +23,8 @@ func HandlerFunc() {
 	http.HandleFunc("/logout", controllers.Logout)
 	http.HandleFunc("/dashboard", api.Dashboard)
 	http.HandleFunc("/displayprojects", api.DisplayProjects)
+	http.HandleFunc("/invite", api.Invite)
+	http.HandleFunc("/inviteuser", api.InviteUser)
 	http.HandleFunc("/bugs", api.DisplayIssues)
 	http.HandleFunc("/showproject", api.ShowProject)
 	http.HandleFunc("/newproject", api.NewProject)

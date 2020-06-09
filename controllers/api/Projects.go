@@ -52,12 +52,12 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(claims.Uid)
 	empProj := models.Totals{}
 	resProj := []models.Totals{}
-	rows, err := db.Query("SELECT COUNT(*) FROM Projects where user_id=?", claims.Uid)
+	rows, err := db.Query("select count(*) from users_projects, projects where user_id=?", claims.Uid)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer rows.Close()
-
+	fmt.Println("working 1?")
 	var countProjects int
 
 	for rows.Next() {
@@ -76,7 +76,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 	}
-
+	fmt.Println("working 2?")
 	lowPriorityRows, errs := db.Query("Select count(*) from issues where priority='Low' and user_id=?", claims.Uid)
 	if errs != nil {
 		log.Fatal(errs)
@@ -88,6 +88,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 	}
+	fmt.Println("working 3?")
 	medPriorityRows, errs := db.Query("Select count(*) from issues where priority='Medium' and user_id=?", claims.Uid)
 	if errs != nil {
 		log.Fatal(errs)
@@ -99,7 +100,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 	}
-
+	fmt.Println("working 4?")
 	highPriorityRows, errs := db.Query("Select count(*) from issues where priority='High' and user_id=?", claims.Uid)
 	if errs != nil {
 		log.Fatal(errs)
@@ -111,7 +112,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 	}
-
+	fmt.Println("working 5?")
 	critPriorityRows, errs := db.Query("Select count(*) from issues where priority='Critical' and user_id=?", claims.Uid)
 	if errs != nil {
 		log.Fatal(errs)
@@ -124,7 +125,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-
+	fmt.Println("working 6?")
 	numFeatureDb, err := db.Query("Select count(*) from issues where kind='Feature' and user_id=?", claims.Uid)
 	if err != nil {
 		log.Fatal(err)
@@ -137,7 +138,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-
+	fmt.Println("working 7?")
 	numIssueDb, err := db.Query("Select count(*) from issues where kind='Issue' and user_id=?", claims.Uid)
 	if err != nil {
 		log.Fatal(err)
@@ -149,7 +150,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 	}
-
+	fmt.Println("working 8?")
 	numNoteDb, err := db.Query("Select count(*) from issues where kind='Note' and user_id=?", claims.Uid)
 	if err != nil {
 		log.Fatal(err)
@@ -163,6 +164,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 	}
 	emp := models.Ratios{}
 	res := []models.Ratios{}
+	fmt.Println("working 9?")
 	datesDb, err := db.Query("Select date from issues where user_id=?", claims.Uid)
 	if err != nil {
 		log.Fatal(err)
@@ -177,6 +179,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		res = append(res, emp)
 	}
 	defer datesDb.Close()
+	fmt.Println("working 10?")
 	issuesPerDate, err := db.Query("select count(*) from issues where date=? and user_id=?", emp.Dates, claims.Uid)
 	if err != nil {
 		log.Fatal(err)
@@ -189,6 +192,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 	}
+	fmt.Println("working 11?")
 	emp.IssuesPerDate = issueDateCount
 	res = append(res, emp)
 	empProj.NumLow = LowPriorityCount
@@ -210,7 +214,6 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(controllers.GithubAccess)
 
 	controllers.Tmpl.ExecuteTemplate(w, "Dashboard", resProj)
-	controllers.Tmpl.ExecuteTemplate(w, "Charts", res)
 	defer db.Close()
 }
 
@@ -243,21 +246,20 @@ func DisplayProjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	db := controllers.DbConn()
-	selDB, err := db.Query("SELECT * FROM Projects WHERE user_id=? ORDER BY id DESC", claims.Uid)
+	selDB, err := db.Query("select projects.* from projects inner join users_projects on users_projects.project_id=projects.id where users_projects.user_id=?", claims.Uid)
 	if err != nil {
 		panic(err.Error())
 	}
 	emp := models.Projects{}
 	res := []models.Projects{}
 	for selDB.Next() {
-		var id, user_id int
+		var id int
 		var name, description, technologies string
-		err = selDB.Scan(&id, &name, &description, &user_id, &technologies)
+		err = selDB.Scan(&id, &name, &description, &technologies)
 		if err != nil {
 			panic(err.Error())
 		}
 		emp.Id = id
-		emp.UserId = user_id
 		emp.ProjectName = name
 		emp.Description = description
 		emp.Technologies = technologies
@@ -325,6 +327,7 @@ func ImportRepos(w http.ResponseWriter, r *http.Request) {
 func NewProject(w http.ResponseWriter, r *http.Request) {
 	controllers.Tmpl.ExecuteTemplate(w, "NewProject", nil)
 }
+
 func InsertProject(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("token")
 	if err != nil {
@@ -358,12 +361,21 @@ func InsertProject(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		r.ParseForm()
 		name, description, technologies := r.PostFormValue("name"), r.PostFormValue("description"), r.PostFormValue("technologies")
-		insForm, err := db.Prepare("INSERT INTO Projects(name, description, user_id, technologies) VALUES(?,?,?, ?)")
+		insForm, err := db.Prepare("INSERT INTO Projects(name, description, technologies) VALUES(?, ?, ?)")
 		if err != nil {
 			panic(err.Error())
 		}
-		insForm.Exec(name, description, claims.Uid, technologies)
+		insForm.Exec(name, description, technologies)
+		var project_id int
+		fmt.Println(project_id)
+		fmt.Println(claims.Uid)
 		log.Println("INSERT: Name: " + name + " | Description: " + description + " | Technologies: " + technologies)
+		teamForm, err := db.Prepare("INSERT INTO users_projects(user_id, project_id) values(?,LAST_INSERT_ID())")
+		if err != nil {
+			panic(err.Error())
+		}
+		teamForm.Exec(claims.Uid)
+
 	}
 	defer db.Close()
 	http.Redirect(w, r, "/displayprojects", 301)
@@ -401,25 +413,24 @@ func ShowProject(w http.ResponseWriter, r *http.Request) {
 	}
 	db := controllers.DbConn()
 	nId := r.URL.Query().Get("id")
-	selDB, err := db.Query("SELECT * FROM Projects WHERE id=? and user_id=?", nId, claims.Uid)
+	selDB, err := db.Query("SELECT * FROM projects WHERE id=?", nId)
 	if err != nil {
 		panic(err.Error())
 	}
 	emp := models.Projects{}
 	for selDB.Next() {
-		var id, user_id int
+		var id int
 		var name, description, technologies string
-		err = selDB.Scan(&id, &name, &description, &user_id, &technologies)
+		err = selDB.Scan(&id, &name, &description, &technologies)
 		if err != nil {
 			panic(err.Error())
 		}
 		emp.Id = id
-		emp.UserId = user_id
 		emp.ProjectName = name
 		emp.Description = description
 		emp.Technologies = technologies
 		controllers.Project_id = emp.Id
-		fmt.Println("Project id is " + string(controllers.Project_id))
+		fmt.Println(controllers.Project_id)
 	}
 	controllers.Tmpl.ExecuteTemplate(w, "ShowProject", emp)
 	defer db.Close()
@@ -458,21 +469,20 @@ func EditProject(w http.ResponseWriter, r *http.Request) {
 	db := controllers.DbConn()
 	nId := r.URL.Query().Get("id")
 	fmt.Println(r.Method)
-	selDB, err := db.Query("SELECT * FROM Projects WHERE id=? and user_id=?", nId, claims.Uid)
+	selDB, err := db.Query("SELECT * FROM Projects WHERE id=?", nId)
 	if err != nil {
 		panic(err.Error())
 	}
 	emp := models.Projects{}
 	for selDB.Next() {
-		var id, user_id int
+		var id int
 		var name, description, technologies string
-		err = selDB.Scan(&id, &name, &description, &user_id, &technologies)
+		err = selDB.Scan(&id, &name, &description, &technologies)
 		if err != nil {
 			panic(err.Error())
 		}
 		emp.Id = id
 		controllers.Project_id = emp.Id
-		emp.UserId = user_id
 		emp.ProjectName = name
 		emp.Description = description
 		emp.Technologies = technologies
@@ -528,6 +538,69 @@ func UpdateProject(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/displayprojects", 301)
 
 }
+func Invite(w http.ResponseWriter, r *http.Request) {
+	controllers.Tmpl.ExecuteTemplate(w, "Invite", nil)
+}
+
+func InviteUser(w http.ResponseWriter, r *http.Request) {
+	c, err := r.Cookie("token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			http.Redirect(w, r, "/", 301)
+			return
+		}
+		http.Redirect(w, r, "/", 301)
+		return
+	}
+
+	tknStr := c.Value
+	claims := &models.Claims{}
+
+	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if !tkn.Valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	db := controllers.DbConn()
+	if r.Method == "POST" {
+		r.ParseForm()
+		email := r.FormValue("email")
+		selDb, err := db.Query("select uid from users where email=?", email)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+
+		var invitedUser string
+		for selDb.Next() {
+			err = selDb.Scan(&invitedUser)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+		}
+		inviteDb, err := db.Prepare("insert ignore into users_projects(user_id, project_id) values(?,?)")
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		fmt.Println(invitedUser)
+		fmt.Println(controllers.Project_id)
+		inviteDb.Exec(invitedUser, controllers.Project_id)
+		fmt.Println("Inserted")
+	}
+	defer db.Close()
+	http.Redirect(w, r, "/displayprojects", 301)
+}
+
 func DeleteProject(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("token")
 	if err != nil {

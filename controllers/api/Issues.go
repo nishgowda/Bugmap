@@ -64,7 +64,7 @@ func DisplayIssues(w http.ResponseWriter, r *http.Request) {
 		emp.Kind = kind
 		emp.Project_id = controllers.Project_id
 
-		projDb, err := db.Query("Select name from projects where id=? and user_id=?", emp.Project_id, claims.Uid)
+		projDb, err := db.Query("Select name from projects where id=?", emp.Project_id)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -116,7 +116,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db := controllers.DbConn()
-	projDB, err := db.Query("Select name from projects where id=? and user_id=?", controllers.Project_id, claims.Uid)
+	projDB, err := db.Query("Select name from projects where id=?", controllers.Project_id)
 	if err != nil {
 		panic(err.Error())
 	}

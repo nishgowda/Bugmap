@@ -1,73 +1,6 @@
 {{ define "Menu" }}
 {{ template "Header"}}
-<style>
-body {
-  font-family: "Lato", sans-serif;
-}
 
-.sidebar {
-  height: 100%;
-  width: 0;
-  position: fixed;
-  z-index: 1;
-  top: 0;
-  left: 0;
-  background-color: #111;
-  overflow-x: hidden;
-  transition: 0.5s;
-  padding-top: 60px;
-}
-
-.sidebar a {
-  padding: 8px 8px 8px 32px;
-  text-decoration: none;
-  font-size: 25px;
-  color: #818181;
-  display: block;
-  transition: 0.3s;
-}
-
-.sidebar a:hover {
-  color: #f1f1f1;
-}
-
-.sidebar .closebtn {
-  position: absolute;
-  top: 0;
-  right: 25px;
-  font-size: 36px;
-  margin-left: 50px;
-}
-
-.openbtn {
-  font-size: 20px;
-  cursor: pointer;
-  background-color: #111;
-  color: white;
-  padding: 10px 15px;
-  border: none;
-}
-
-.openbtn:hover {
-  background-color: #444;
-}
-
-#main {
-  transition: margin-left .5s;
-  padding: 16px;
-}
-
-/* On smaller screens, where height is less than 450px, change the style of the sidenav (less padding and a smaller font size) */
-@media screen and (max-height: 450px) {
-  .sidebar {padding-top: 15px;}
-  .sidebar a {font-size: 18px;}
-}
-</style>
- <script type="text/javascript">
-  function toggleSidebar(){
-   document.getElementById("sidebar").classList.toggle('active');
-  }
- </script>
 <!-- Dropdown Structure -->
   <div class="navbar-fixed">
 <nav style="background-color: #1B4192">
@@ -77,6 +10,7 @@ body {
       <li><a href="/displayprojects">Projects</a></li>
       <li><a href="/bugs">Tickets</a></li>
       <!-- Dropdown Trigger -->
+
       <li><a class="dropdown-trigger" href="#!" data-target="dropdown1"><i class="material-icons left">person</i><i class="material-icons right">arrow_drop_down</i></a></li>
       <ul id="dropdown1" class="dropdown-content">
   <li><a href="/dashboard">Dashboard</a></li>
@@ -84,24 +18,41 @@ body {
   <li class="divider"></li>
 </ul>
     </ul>
+
   </div>
 </nav>
+
 </div>
+
+  <ul id="slide-out" class="sidenav">
+
+    <li><a href="#!"><i class="material-icons">cloud</i>First Link With Icon</a></li>
+    {{ range .}}
+    <li><a href="/showproject?id={{ .Id }}">{{.ProjectName}}</a></li>
+    {{ end }}
+    <li><div class="divider"></div></li>
+    <li><a class="subheader">Subheader</a></li>
+    <li><a class="waves-effect" href="#!">Third Link With Waves</a></li>
+  </ul>
+  <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
         
 
 <script>
 $(".dropdown-trigger").dropdown();
 
+  document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.sidenav');
+    var instances = M.Sidenav.init(elems, options);
+  });
 
+  // Initialize collapsible (uncomment the lines below if you use the dropdown variation)
+  // var collapsibleElem = document.querySelector('.collapsible');
+  // var collapsibleInstance = M.Collapsible.init(collapsibleElem, options);
 
-function openNav() {
-  document.getElementById("mySidebar").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-}
+  // Or with jQuery
 
-function closeNav() {
-  document.getElementById("mySidebar").style.width = "0";
-  document.getElementById("main").style.marginLeft= "0";
-}
+  $(document).ready(function(){
+    $('.sidenav').sidenav();
+  });
 </script>
 {{ end }}

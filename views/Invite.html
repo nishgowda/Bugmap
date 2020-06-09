@@ -1,0 +1,29 @@
+{{ define "Invite" }}
+  {{ template "Header" }}
+    {{ template "Menu" }}
+
+   <center>
+    <div class="container">
+   <h2>Invite a user to this project</h2>  
+     <div class="row">
+    <form class="col s12" method="POST" action="inviteuser">
+      <div class="row">
+        <div class="input-field col s12">
+          <input placeholder="Email" id="email" type="text" class="validate" name="email" required>
+          <label for="email">Email</label>
+        </div>
+        </div>
+      
+    <div>
+        <div>
+  <input type="submit" class="btn" style="background-color: #1B4192">
+      </div>
+    
+    </form>
+
+    </div>
+    </center>
+       
+    <div>
+  {{ template "Footer" }}
+{{ end }}
