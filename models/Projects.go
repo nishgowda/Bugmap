@@ -6,5 +6,5 @@ type Projects struct {
 	ProjectName  string
 	Description  string
 	Technologies string
-	Users        string
+	Users        []string
 }

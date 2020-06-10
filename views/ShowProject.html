@@ -11,6 +11,7 @@
           <span class="card-title">{{.ProjectName}}</span>
           <p>Technologies: {{.Technologies}}</p>
           <p>Description: {{.Description}}</p>
+          <p>Contributers: {{range $index, $element := .Users}} {{if $index}}, {{end}}{{$element}} {{end}}</p>
         </div>
         <div class="card-action">
          <a href="/editproject?id={{ .Id }}" class="card-link">Edit</a>

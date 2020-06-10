@@ -24,6 +24,7 @@
     <div class="card-reveal">
       <span class="card-title grey-text text-darken-4">Description: {{.Description}}<i class="material-icons right">close</i></span>
       <p>Technologies: {{.Technologies}}</p>
+      <p>Contributers: {{range $index, $element := .Users}}{{if $index}}, {{end}} {{$element}} {{end}}</p>
     </div>
   
 

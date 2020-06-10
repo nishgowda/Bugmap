@@ -52,7 +52,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(claims.Uid)
 	empProj := models.Totals{}
 	resProj := []models.Totals{}
-	rows, err := db.Query("select count(*) from users_projects, projects where user_id=?", claims.Uid)
+	rows, err := db.Query("select count(*) from projects inner join users_projects on users_projects.project_id=projects.id where users_projects.user_id=?", claims.Uid)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -252,6 +252,7 @@ func DisplayProjects(w http.ResponseWriter, r *http.Request) {
 	}
 	emp := models.Projects{}
 	res := []models.Projects{}
+
 	for selDB.Next() {
 		var id int
 		var name, description, technologies string
@@ -263,10 +264,24 @@ func DisplayProjects(w http.ResponseWriter, r *http.Request) {
 		emp.ProjectName = name
 		emp.Description = description
 		emp.Technologies = technologies
+		emp.Users = []string{}
+		projDb, err := db.Query("select users.email from users inner join users_projects on users_projects.user_id=users.uid where users_projects.project_id=?", emp.Id)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		for projDb.Next() {
+			var userEmails string
+			err = projDb.Scan(&userEmails)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			emp.Users = append(emp.Users, userEmails)
+		}
 		res = append(res, emp)
+
 	}
 	//fmt.Println(uid)
-	//fmt.Println(res)
+	fmt.Println(res)
 	controllers.Tmpl.ExecuteTemplate(w, "DisplayProjects", res)
 	defer db.Close()
 }
@@ -431,6 +446,19 @@ func ShowProject(w http.ResponseWriter, r *http.Request) {
 		emp.Technologies = technologies
 		controllers.Project_id = emp.Id
 		fmt.Println(controllers.Project_id)
+		emp.Users = []string{}
+		projDb, err := db.Query("select users.email from users inner join users_projects on users_projects.user_id=users.uid where users_projects.project_id=?", emp.Id)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		for projDb.Next() {
+			var userEmails string
+			err = projDb.Scan(&userEmails)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			emp.Users = append(emp.Users, userEmails)
+		}
 	}
 	controllers.Tmpl.ExecuteTemplate(w, "ShowProject", emp)
 	defer db.Close()
