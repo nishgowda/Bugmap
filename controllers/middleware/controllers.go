@@ -9,8 +9,8 @@ import (
 	"log"
 	"math/rand"
 	"models/models"
+	"models/properties"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -37,23 +37,9 @@ func init() {
 }
 
 func initGoogle() {
-	jsonFile, err := os.Open("./googlesecret.json")
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("Successfully Opened Json file")
-	defer jsonFile.Close()
-
-	body, err := ioutil.ReadAll(jsonFile)
-	js := string(body)
-	var result map[string]interface{}
-	// Unmarshal or Decode the JSON to the interface.
-	json.Unmarshal([]byte(js), &result)
-	clientID := fmt.Sprint(result["client_id"])
-	clientSecret := fmt.Sprint(result["client_secret"])
-	redirectURL := fmt.Sprint(result["redirect_url"])
-	fmt.Println(clientID)
-	fmt.Println(clientSecret)
+	clientID := properties.DotEnvVariable("googleClientID")
+	clientSecret := properties.DotEnvVariable("googleClientSecret")
+	redirectURL := properties.DotEnvVariable("googleRedirectURI")
 	googleOauthConfig = &oauth2.Config{
 		RedirectURL:  redirectURL,
 		ClientID:     clientID,
@@ -68,21 +54,9 @@ var (
 )
 
 func initGithub() {
-	jsonFile, err := os.Open("./githubsecret.json")
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("Successfully Opened Json file")
-	defer jsonFile.Close()
-
-	body, err := ioutil.ReadAll(jsonFile)
-	js := string(body)
-	var result map[string]interface{}
-	// Unmarshal or Decode the JSON to the interface.
-	json.Unmarshal([]byte(js), &result)
-	clientID := fmt.Sprint(result["client_id"])
-	clientSecret := fmt.Sprint(result["client_secret"])
-	redirectURL := fmt.Sprint(result["redirect_url"])
+	clientID := properties.DotEnvVariable("githubClientID")
+	clientSecret := properties.DotEnvVariable("githubClientSecret")
+	redirectURL := properties.DotEnvVariable("githubRedirectURI")
 	githubOauthConfig = &oauth2.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
@@ -94,28 +68,18 @@ func initGithub() {
 
 // Generate a random string of A-Z chars with len = l
 
-var randState = "random"
+var randState = properties.DotEnvVariable("randState")
 var jwtKey = JwtKey()
 
 func DbConn() (db *sql.DB) {
-	file, err := os.Open("./dbSecret.json")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-	body, err := ioutil.ReadAll(file)
-	js := string(body)
-	var result map[string]interface{}
-	// Unmarshal or Decode the JSON to the interface.
-	json.Unmarshal([]byte(js), &result)
-	DbName := fmt.Sprint(result["dbName"])
-	DbPassword := fmt.Sprint(result["dbPassword"])
+	DbPassword := properties.DotEnvVariable("dbPassword")
+	DbName := properties.DotEnvVariable("dbName")
 	dbDriver := "mysql"
 	dbUser := "root"
 	dbPass := DbPassword
 	dbName := DbName
-	db, errs := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
-	if errs != nil {
+	db, err := sql.Open(dbDriver, dbUser+":"+dbPass+"@/"+dbName)
+	if err != nil {
 		panic(err.Error())
 	}
 	return db
@@ -136,16 +100,7 @@ func CheckPasswordHash(password, hash string) bool {
 }
 
 func JwtKey() []byte {
-	jsonFile, err := os.Open("./secretKey.json")
-	if err != nil {
-		fmt.Println(err)
-	}
-	defer jsonFile.Close()
-	body, err := ioutil.ReadAll(jsonFile)
-	js := string(body)
-	var result map[string]interface{}
-	json.Unmarshal([]byte(js), &result)
-	secretKey := fmt.Sprint(result["secret_key"])
+	secretKey := properties.DotEnvVariable("secretKey")
 	var jwtKey = []byte(secretKey)
 	return jwtKey
 }
@@ -330,10 +285,7 @@ func HandleGitHubCallback(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				fmt.Println(err.Error())
 			}
-
-			password := RandStringBytes(14)
-			hash, _ := HashPassword(password)
-			insForm.Exec(email, hash)
+			insForm.Exec(email)
 			log.Println("INSERT: Email" + email)
 			defer db.Close()
 		}

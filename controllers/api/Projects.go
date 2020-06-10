@@ -6,6 +6,7 @@ import (
 	"log"
 	controllers "models/controllers/middleware"
 	"models/models"
+	"models/properties"
 	"net/http"
 
 	jparse "github.com/nishgowda/Jparse"
@@ -603,29 +604,35 @@ func InviteUser(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		r.ParseForm()
 		email := r.FormValue("email")
-		selDb, err := db.Query("select uid from users where email=?", email)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
+		validate := properties.ValidateEmail(email)
+		if validate == false {
+			fmt.Println("bad email")
+		} else {
 
-		var invitedUser string
-		for selDb.Next() {
-			err = selDb.Scan(&invitedUser)
+			selDb, err := db.Query("select uid from users where email=?", email)
 			if err != nil {
 				log.Fatal(err.Error())
 			}
+
+			var invitedUser string
+			for selDb.Next() {
+				err = selDb.Scan(&invitedUser)
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+			}
+			inviteDb, err := db.Prepare("insert ignore into users_projects(user_id, project_id) values(?,?)")
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			fmt.Println(invitedUser)
+			fmt.Println(controllers.Project_id)
+			inviteDb.Exec(invitedUser, controllers.Project_id)
+			fmt.Println("Inserted")
 		}
-		inviteDb, err := db.Prepare("insert ignore into users_projects(user_id, project_id) values(?,?)")
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		fmt.Println(invitedUser)
-		fmt.Println(controllers.Project_id)
-		inviteDb.Exec(invitedUser, controllers.Project_id)
-		fmt.Println("Inserted")
+		defer db.Close()
+		http.Redirect(w, r, "/displayprojects", 301)
 	}
-	defer db.Close()
-	http.Redirect(w, r, "/displayprojects", 301)
 }
 
 func DeleteProject(w http.ResponseWriter, r *http.Request) {

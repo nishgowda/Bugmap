@@ -338,7 +338,7 @@ func Insert(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		name, description, priority, kind := r.PostFormValue("name"), r.PostFormValue("description"), r.PostFormValue("priority"), r.PostFormValue("kind")
 		date := time.Now().Format("01-02-2006")
-		insForm, err := db.Prepare("INSERT INTO Issues(name, description, priority,kind , project_id, user_id,date ) VALUES(?,?,?,?,?,?,?)")
+		insForm, err := db.Prepare("INSERT INTO Issues(name, description, priority, kind , project_id, user_id, date ) VALUES(?,?,?,?,?,?,?)")
 		if err != nil {
 			panic(err.Error())
 		}
