@@ -15,6 +15,7 @@
         <th scope="col">Description</th>
         <th scope="col">Type</th>
         <th scope="col">Priority</th>
+         <th scope="col">Submitter</th>
         <th scope="col">View</th>
         <th scope="col">Edit</th>
         <th scope="col">Resolve</th>
@@ -28,6 +29,7 @@
         <td>{{ .Description }} </td> 
         <td>{{ .Kind }} </td> 
         <td>{{ .Priority }} </td> 
+         <td>{{range $index, $element := .Users}}{{if $index}}, {{end}} {{$element}} {{end}}</td> 
         <td><a href="/show?id={{ .Id }}">View</a></td>
         <td><a href="/edit?id={{ .Id }}">Edit</a></td>
         <td><a href="/delete?id={{ .Id }}" >Resolve</a><td>

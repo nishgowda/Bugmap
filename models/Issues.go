@@ -10,4 +10,5 @@ type Issues struct {
 	User_id     int
 	Kind        string
 	ProjectName string
+	Users       []string
 }

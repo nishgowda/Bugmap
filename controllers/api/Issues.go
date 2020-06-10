@@ -51,7 +51,7 @@ func DisplayIssues(w http.ResponseWriter, r *http.Request) {
 		var id, user_id int
 		var name, description, priority, date, kind string
 		var projectName string
-		err = selDB.Scan(&id, &name, &description, &priority, &date, &controllers.Project_id, &user_id, &kind)
+		err = selDB.Scan(&id, &name, &description, &priority, &kind, &controllers.Project_id, &user_id, &date)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -77,6 +77,7 @@ func DisplayIssues(w http.ResponseWriter, r *http.Request) {
 		}
 		res = append(res, emp)
 	}
+
 	//fmt.Print("display users id is ")
 	//fmt.Println(uid)
 	controllers.Tmpl.ExecuteTemplate(w, "Issues", res)
@@ -128,7 +129,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	selDB, err := db.Query("SELECT * FROM Issues WHERE project_id=? and user_id=? ORDER BY id DESC", controllers.Project_id, claims.Uid)
+	selDB, err := db.Query("SELECT * FROM Issues WHERE project_id=? ORDER BY id DESC", controllers.Project_id)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -137,7 +138,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	for selDB.Next() {
 		var id, project_id, user_id int
 		var name, description, priority, date, kind string
-		err = selDB.Scan(&id, &name, &description, &priority, &date, &project_id, &user_id, &kind)
+		err = selDB.Scan(&id, &name, &description, &priority, &kind, &project_id, &user_id, &date)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -149,7 +150,19 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		emp.Priority = priority
 		emp.Date = date
 		emp.Kind = kind
-		emp.ProjectName = projectName
+		emp.Users = []string{}
+		userDb, err := db.Query("select email from users where uid=?", emp.User_id)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		for userDb.Next() {
+			var emails string
+			err = userDb.Scan(&emails)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			emp.Users = append(emp.Users, emails)
+		}
 		res = append(res, emp)
 	}
 	fmt.Println(projectName)
@@ -195,7 +208,7 @@ func Show(w http.ResponseWriter, r *http.Request) {
 	db := controllers.DbConn()
 	nId := r.URL.Query().Get("id")
 	fmt.Println(nId)
-	selDB, err := db.Query("SELECT * FROM Issues WHERE id=? and project_id=? and user_id=?", nId, controllers.Project_id, claims.Uid)
+	selDB, err := db.Query("SELECT * FROM Issues WHERE id=? and project_id=?", nId, controllers.Project_id)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -203,7 +216,7 @@ func Show(w http.ResponseWriter, r *http.Request) {
 	for selDB.Next() {
 		var id, project_id, user_id int
 		var name, description, priority, date, kind string
-		err = selDB.Scan(&id, &name, &description, &priority, &date, &project_id, &user_id, &kind)
+		err = selDB.Scan(&id, &name, &description, &priority, &kind, &project_id, &user_id, &date)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -272,7 +285,7 @@ func Edit(w http.ResponseWriter, r *http.Request) {
 	for selDB.Next() {
 		var id, project_id int
 		var name, description, priority, date, kind string
-		err = selDB.Scan(&id, &name, &description, &priority, &date, &project_id, &claims.Uid, &kind)
+		err = selDB.Scan(&id, &name, &description, &priority, &kind, &project_id, &claims.Uid, &date)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -325,11 +338,11 @@ func Insert(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		name, description, priority, kind := r.PostFormValue("name"), r.PostFormValue("description"), r.PostFormValue("priority"), r.PostFormValue("kind")
 		date := time.Now().Format("01-02-2006")
-		insForm, err := db.Prepare("INSERT INTO Issues(name, description, priority, date, project_id, user_id, kind) VALUES(?,?,?,?,?,?,?)")
+		insForm, err := db.Prepare("INSERT INTO Issues(name, description, priority,kind , project_id, user_id,date ) VALUES(?,?,?,?,?,?,?)")
 		if err != nil {
 			panic(err.Error())
 		}
-		insForm.Exec(name, description, priority, date, controllers.Project_id, claims.Uid, kind)
+		insForm.Exec(name, description, priority, kind, controllers.Project_id, claims.Uid, date)
 		log.Println("INSERT: Name: " + name + " | Description: " + description + " | Priority: " + priority + " | Date: " + date + " | Kind: " + kind)
 	}
 	defer db.Close()
@@ -373,11 +386,11 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		id := issueId
 		fmt.Println(id)
 		date := time.Now().Format("01-02-2006")
-		insForm, err := db.Prepare("UPDATE Issues SET name=?, description=?, priority=?, date=?, project_id=?, user_id=?, kind=? WHERE id=?")
+		insForm, err := db.Prepare("UPDATE Issues SET name=?, description=?, priority=?,kind=? , project_id=?, user_id=?, date=? WHERE id=?")
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-		insForm.Exec(name, description, priority, date, controllers.Project_id, claims.Uid, kind, id)
+		insForm.Exec(name, description, priority, kind, controllers.Project_id, claims.Uid, date, id)
 		log.Println("UPDATE: Name: " + name + " | Description: " + description + " | Priority: " + priority + " | Date: " + date + " | Kind: " + kind)
 	}
 	defer db.Close()

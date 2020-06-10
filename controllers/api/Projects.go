@@ -57,7 +57,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	defer rows.Close()
-	fmt.Println("working 1?")
+
 	var countProjects int
 
 	for rows.Next() {
@@ -76,7 +76,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 	}
-	fmt.Println("working 2?")
+
 	lowPriorityRows, errs := db.Query("Select count(*) from issues where priority='Low' and user_id=?", claims.Uid)
 	if errs != nil {
 		log.Fatal(errs)
@@ -88,7 +88,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 	}
-	fmt.Println("working 3?")
+
 	medPriorityRows, errs := db.Query("Select count(*) from issues where priority='Medium' and user_id=?", claims.Uid)
 	if errs != nil {
 		log.Fatal(errs)
@@ -100,7 +100,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 	}
-	fmt.Println("working 4?")
+
 	highPriorityRows, errs := db.Query("Select count(*) from issues where priority='High' and user_id=?", claims.Uid)
 	if errs != nil {
 		log.Fatal(errs)
@@ -112,7 +112,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 	}
-	fmt.Println("working 5?")
+
 	critPriorityRows, errs := db.Query("Select count(*) from issues where priority='Critical' and user_id=?", claims.Uid)
 	if errs != nil {
 		log.Fatal(errs)
@@ -125,7 +125,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-	fmt.Println("working 6?")
+
 	numFeatureDb, err := db.Query("Select count(*) from issues where kind='Feature' and user_id=?", claims.Uid)
 	if err != nil {
 		log.Fatal(err)
@@ -138,7 +138,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-	fmt.Println("working 7?")
+
 	numIssueDb, err := db.Query("Select count(*) from issues where kind='Issue' and user_id=?", claims.Uid)
 	if err != nil {
 		log.Fatal(err)
@@ -150,7 +150,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 	}
-	fmt.Println("working 8?")
+
 	numNoteDb, err := db.Query("Select count(*) from issues where kind='Note' and user_id=?", claims.Uid)
 	if err != nil {
 		log.Fatal(err)
@@ -164,7 +164,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 	}
 	emp := models.Ratios{}
 	res := []models.Ratios{}
-	fmt.Println("working 9?")
+
 	datesDb, err := db.Query("Select date from issues where user_id=?", claims.Uid)
 	if err != nil {
 		log.Fatal(err)
@@ -179,7 +179,6 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		res = append(res, emp)
 	}
 	defer datesDb.Close()
-	fmt.Println("working 10?")
 	issuesPerDate, err := db.Query("select count(*) from issues where date=? and user_id=?", emp.Dates, claims.Uid)
 	if err != nil {
 		log.Fatal(err)
@@ -192,7 +191,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 	}
-	fmt.Println("working 11?")
+
 	emp.IssuesPerDate = issueDateCount
 	res = append(res, emp)
 	empProj.NumLow = LowPriorityCount
