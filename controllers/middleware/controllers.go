@@ -16,7 +16,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/go-github/github"
-	"golang.org/x/crypto/bcrypt"
 
 	"golang.org/x/oauth2"
 	githuboauth "golang.org/x/oauth2/github" // with go modules enabled (GO111MODULE=on or outside GOPATH)
@@ -66,10 +65,8 @@ func initGithub() {
 	}
 }
 
-// Generate a random string of A-Z chars with len = l
-
 var randState = properties.DotEnvVariable("randState")
-var jwtKey = JwtKey()
+var jwtKey = properties.JwtKey()
 
 func DbConn() (db *sql.DB) {
 	DbPassword := properties.DotEnvVariable("dbPassword")
@@ -87,22 +84,6 @@ func DbConn() (db *sql.DB) {
 
 func Home(w http.ResponseWriter, r *http.Request) {
 	Tmpl.ExecuteTemplate(w, "Login", nil)
-}
-
-func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
-}
-
-func CheckPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
-}
-
-func JwtKey() []byte {
-	secretKey := properties.DotEnvVariable("secretKey")
-	var jwtKey = []byte(secretKey)
-	return jwtKey
 }
 
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
@@ -212,7 +193,6 @@ func HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer db.Close()
-	fmt.Println("dashboard?")
 	http.Redirect(w, r, "/dashboard", 301)
 }
 
@@ -378,7 +358,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			emp.Uid = uid
 			emp.Password = password
 			emp.Username = username
-			if CheckPasswordHash(ogPassword, emp.Password) == true {
+			if properties.CheckPasswordHash(ogPassword, emp.Password) == true {
 				res = append(res, emp)
 				//fmt.Println(emp.Password)
 				fmt.Println("succesfully logged in as " + username)
@@ -463,7 +443,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Println(err.Error)
 		}
-		hash, _ := HashPassword(password)
+		hash, _ := properties.HashPassword(password)
 		insForm.Exec(username, hash, first_name, last_name)
 		log.Println("INSERT: Username: " + username + " | Password: " + string(hash) + " | First Name: " + first_name + " | Last Name : " + last_name)
 
@@ -471,29 +451,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	defer db.Close()
 	http.Redirect(w, r, "/", 301)
-}
-func UniqueInt(intSlice []int) []int {
-	keys := make(map[int]bool)
-	list := []int{}
-	for _, entry := range intSlice {
-		if _, value := keys[entry]; !value {
-			keys[entry] = true
-			list = append(list, entry)
-		}
-	}
-	return list
-}
-
-func UniqueString(stringSlice []string) []string {
-	keys := make(map[string]bool)
-	list := []string{}
-	for _, entry := range stringSlice {
-		if _, value := keys[entry]; !value {
-			keys[entry] = true
-			list = append(list, entry)
-		}
-	}
-	return list
 }
 
 func RefreshToken(w http.ResponseWriter, r *http.Request) {
@@ -523,7 +480,6 @@ func RefreshToken(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
 	if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 5*time.Second {
 		w.WriteHeader(http.StatusBadRequest)
 		return

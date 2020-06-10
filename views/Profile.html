@@ -1,10 +1,10 @@
-{{ define "Dashboard" }}
+{{ define "Profile" }}
    {{ template "Menu"  }}
   {{ template "Header" }}
  
    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
     <center>
-    <h2>Dashboard</h2>
+    <h2>Profile</h2>
         </center>
     <div class="container">
   <div class="row">
@@ -35,27 +35,15 @@
     </div>
   </div>
   </div>
-  <div class="row">
-      <div class="col s12 m6">
    <div class="card">
     <div class="card-content">
       <p> <canvas id="myChart" style="height: 300px; width: 100%;"></canvas></p>
     </div>
     </div>
-        </div>
-        <div class="col s12 m6">
+
        <div class="card">
     <div class="card-content">
       <p> <canvas id="bar-chart" style="height: 300px; width: 100%;"></canvas></p>
-    </div>
-    </div>
-    </div>
-    </div>
-
-
-    <div class="card">
-    <div class="card-content">
-      <p> <canvas id="line-chart" style="height: 300px; width: 80%;"></canvas></p>
     </div>
     </div>
 
@@ -110,51 +98,6 @@ new Chart(document.getElementById("bar-chart"), {
     }
 });
 
-new Chart(document.getElementById("line-chart"), {
-  type: 'line',
-  data: {
-    {{ range .}}
-
-    labels:      [ {{range  $index, $element := .Dates}} {{if $index}},{{end}}{{$element}} {{ end }}]     ,
-
-    datasets: [{ 
-
-        data:   [{{range  $key, $value := .IssuesPerDate}}{{if $key}},{{end}}{{$value}}  {{ end }}]        ,
-
-        lineTension: 0.1,
-        label: "Issues",
-        borderColor: "rgba(75, 192, 192 ,1)",
-        backgroundColor: "rgba(75, 192, 192 ,0.4)",
-        borderCapStyle : 'butt',
-        borderJoinStyle: 'miter',
-        pointBorderColor: "rgba(75,192,192,1)",
-        pointBackgroundColor:"#fff",
-        pointBorderWidth: 1,
-        pointHoverRadius: 5,
-        pointHoverBackgroundColor: "rgba(75,192,192,1)",
-        pointHoverBorderColor: 2,
-        pointRadius: 1,
-        pointHitRadius: 10,
-        fill: false
-      }
-    ]
-  }     {{ end }}
-        ,
-  options: {
-    title: {
-      display: true,
-      text: 'Your Activity'
-    }
-  }
-});
-
-function addData(chart, label, data) {
-    chart.data.labels.push(label);
-    chart.data.datasets.forEach((dataset) => {
-        dataset.data.push(data);
-    });
-    chart.update();
-}
 
 </script>
     </div>

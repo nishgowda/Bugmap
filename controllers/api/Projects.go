@@ -14,7 +14,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-var jwtKey = controllers.JwtKey()
+var jwtKey = properties.JwtKey()
 
 func Dashboard(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("token")
@@ -163,8 +163,6 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 	}
-	emp := models.Ratios{}
-	res := []models.Ratios{}
 
 	datesDb, err := db.Query("Select date from issues where user_id=?", claims.Uid)
 	if err != nil {
@@ -176,25 +174,30 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		emp.Dates = dates
-		res = append(res, emp)
+		empProj.Dates = properties.UniqueString(append(empProj.Dates, dates))
 	}
 	defer datesDb.Close()
-	issuesPerDate, err := db.Query("select count(*) from issues where date=? and user_id=?", emp.Dates, claims.Uid)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer datesDb.Close()
-	var issueDateCount int
-	for issuesPerDate.Next() {
-		err = issuesPerDate.Scan(&issueDateCount)
+
+	for i := 0; i < len(empProj.Dates); i++ {
+		issuesPerDate, err := db.Query("select count(*) from issues where date=? and user_id=?", empProj.Dates[i], claims.Uid)
 		if err != nil {
 			log.Fatal(err)
 		}
+		var issueDateCount int
+		for issuesPerDate.Next() {
+			err = issuesPerDate.Scan(&issueDateCount)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(issueDateCount)
+			empProj.IssuesPerDate = append(empProj.IssuesPerDate, issueDateCount)
+		}
+		defer issuesPerDate.Close()
+
 	}
 
-	emp.IssuesPerDate = issueDateCount
-	res = append(res, emp)
+	fmt.Println(empProj.Dates)
+	fmt.Println(empProj.IssuesPerDate)
 	empProj.NumLow = LowPriorityCount
 	empProj.NumMedium = MedPriorityCount
 	empProj.NumHigh = HighPriorityCount
@@ -210,7 +213,7 @@ func Dashboard(w http.ResponseWriter, r *http.Request) {
 
 	resProj = append(resProj, empProj)
 	fmt.Println(resProj)
-	fmt.Println(res)
+
 	fmt.Println(controllers.GithubAccess)
 
 	controllers.Tmpl.ExecuteTemplate(w, "Dashboard", resProj)
@@ -245,6 +248,7 @@ func DisplayProjects(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+
 	db := controllers.DbConn()
 	selDB, err := db.Query("select projects.* from projects inner join users_projects on users_projects.project_id=projects.id where users_projects.user_id=?", claims.Uid)
 	if err != nil {
@@ -314,10 +318,12 @@ func ImportRepos(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+
 	res, err := http.Get(controllers.JsonURL)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	body, err := ioutil.ReadAll(res.Body)
 	js := string(body)
 	names := jparse.SimpleArrayParse([]string{"name"}, js)
@@ -372,6 +378,7 @@ func InsertProject(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+
 	db := controllers.DbConn()
 	if r.Method == "POST" {
 		r.ParseForm()
@@ -426,6 +433,7 @@ func ShowProject(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+
 	db := controllers.DbConn()
 	nId := r.URL.Query().Get("id")
 	selDB, err := db.Query("SELECT * FROM projects WHERE id=?", nId)
@@ -494,6 +502,7 @@ func EditProject(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+
 	db := controllers.DbConn()
 	nId := r.URL.Query().Get("id")
 	fmt.Println(r.Method)
@@ -608,7 +617,6 @@ func InviteUser(w http.ResponseWriter, r *http.Request) {
 		if validate == false {
 			fmt.Println("bad email")
 		} else {
-
 			selDb, err := db.Query("select uid from users where email=?", email)
 			if err != nil {
 				log.Fatal(err.Error())
