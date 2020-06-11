@@ -37,7 +37,7 @@
      {{ range $value := .CollabUids}}
      <div class="card">
         <div class="card-content">
-     <a href="/profilesearch?uid={{ $value }}">View</a>
+    <a href="/profilesearch?uid={{ $value }}">View     <i class="material-icons">arrow_forward</i> </a>
      </div>
      </div>
      {{end }}
@@ -64,7 +64,7 @@
   </div>
 
 
-
+</center>
 <script>
   var instance = M.Tabs.getInstance(elem);
   // Or with jQuery
