@@ -25,5 +25,9 @@ go get github.com/nishgowda/Bugmap
 - Javascript
 
 ## To Do:
-- [ ] Improve UI
+- [ ] Finish Frontend
+- [ ] Finish OAuth
+- [ ] Server Dashboard
+- [ ] Deploy
+
 
