@@ -1,20 +1,28 @@
 {{ define "Register" }}
-  {{ template "Header" }}
-        <style>
+ <head>
+        <title>Bugmap</title>
+        <meta charset="UTF-8" />
+    </head>
+    <body>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<style>
 :root {
   --input-padding-x: 1.5rem;
   --input-padding-y: .75rem;
 }
 
 body {
-   background: #2F4F4F;
+  background:#1B4192;
 
 }
 
 .card-signin {
   border: 0;
   border-radius: 1rem;
-   box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.5);
 }
 
 .card-signin .card-title {
@@ -25,6 +33,7 @@ body {
 
 .card-signin .card-body {
   padding: 2rem;
+
 }
 
 .form-signin {
@@ -137,6 +146,8 @@ body {
   }
 }
 </style>
+
+
 <body>
   <div class="container">
     <div class="row">
@@ -149,34 +160,40 @@ body {
                 <input type="text" id="inputUsername" class="form-control" name="username" placeholder="Username" required>
                      <label for="inputUsername">Username</label>
               </div>
-                  <div class="form-label-group">
-                <input type="text" id="inputFirstName" class="form-control" name="first_name" placeholder="First Name" required>
-                  <label for="inputFirstName">First Name</label>
+               <div class="form-label-group">
+                <input type="text" id="firstName" class="form-control" name="first_name" placeholder="First Name" required>
+                  <label for="firstName">First Name</label>
               </div>
-                  <div class="form-label-group">
-                <input type="text" id="inputLastName" class="form-control" name="last_name" placeholder="Last Name" required>
-                  <label for="inputLastName">Last Name</label>
+               <div class="form-label-group">
+                <input type="text" id="lastName" class="form-control" name="last_name" placeholder="Last Name" required>
+                  <label for="lastName">Last Name</label>
+              </div>
+                 <div class="form-label-group">
+                <input type="text" id="email" class="form-control" name="email" placeholder="Email" required>
+                  <label for="email">Email</label>
               </div>
               <div class="form-label-group">
-                <input type="text" id="inputPassword" class="form-control" name="password" placeholder="Password" required>
+                <input type="password" id="inputPassword" class="form-control" name="password" placeholder="Password" required>
                   <label for="inputPassword">Password</label>
               </div>
-               <input type="submit" class="btn btn-lg btn-primary btn-block text-uppercase" value="Register"/>
+
+               <input type="submit" class="btn btn-lg btn-primary btn-block text-uppercase" value="Sign Up"/>
               <hr class="my-4">
               <a class="btn btn-lg btn-google btn-block text-uppercase" href="/googlelogin" role="button"><i class="fab fa-google mr-2"></i> Sign Up with Google</a>
               <a class="btn btn-lg btn-github btn-block text-uppercase"  href="/githublogin" role="button"><i class="fab fa-github-f mr-2"></i> Sign Up with Github</a>
-            </form>
-              <div >
-              <center>
-                <a href="/login">Already have an account? Click to Login</a>
-                </center
+                             <div >
+                             <center>
+                <a href="/login">Have an account? Click to login!</a>
+                  <center>
               </div>
+            </form>
           </div>
         </div>
       </div>
     </div>
   </div>
 </body>
+
 
   {{ template "Footer" }}
 {{ end }}

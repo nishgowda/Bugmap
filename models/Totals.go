@@ -12,4 +12,5 @@ type Totals struct {
 	NumNote       int
 	Dates         []string
 	IssuesPerDate []int
+	User          string
 }

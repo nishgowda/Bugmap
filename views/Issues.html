@@ -1,6 +1,7 @@
 {{ define "Issues" }}
+  {{ template "Menu" }}
   {{ template "Header" }}
-    {{ template "Menu"  }}
+
     <center>
     <h2> All Tickets </h2>
     </center>
@@ -19,12 +20,12 @@
        <tbody>
     {{ range .  }}
       <tr>
-        <td>{{ .Date }} </td> 
+        <td>{{ .Date }} </td>
         <td> {{ .Name }} </td>
-        <td>{{ .Description }} </td> 
-        <td>{{ .Kind }} </td> 
-        <td>{{ .Priority }} </td> 
-        <td>{{ .ProjectName }} </td> 
+        <td>{{ .Description }} </td>
+        <td>{{ .Kind }} </td>
+        <td>{{ .Priority }} </td>
+        <td>{{ .ProjectName }} </td>
       </tr>
     {{ end }}
        </tbody>
@@ -33,6 +34,3 @@
 
   {{ template "Footer" }}
 {{ end }}
-
-
-

@@ -416,20 +416,22 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Working?")
 	if r.Method == "POST" {
 		r.ParseForm()
-		username, password, first_name, last_name := r.PostFormValue("username"), r.PostFormValue("password"), r.PostFormValue("first_name"), r.PostFormValue("last_name")
-		currentData, err := db.Query("Select username from users")
+		username, password, first_name, last_name, email := r.PostFormValue("username"), r.PostFormValue("password"), r.PostFormValue("first_name"), r.PostFormValue("last_name"), r.PostFormValue("email")
+		currentData, err := db.Query("Select username, email from users")
 		if err != nil {
 			panic(err.Error())
 		}
 		var allUsersNames []string
 		var storedUsernames string
+		var allEmails []string
+		var emails string
 		for currentData.Next() {
-			err = currentData.Scan(&storedUsernames)
+			err = currentData.Scan(&storedUsernames, &emails)
 			if err != nil {
 				panic(err.Error())
 			}
 			allUsersNames = append(allUsersNames, storedUsernames)
-
+			allEmails = append(allEmails, emails)
 		}
 		fmt.Println(allUsersNames)
 		for i := 0; i < len(allUsersNames); i++ {
@@ -439,13 +441,20 @@ func Register(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		}
-		insForm, err := db.Prepare("INSERT IGNORE INTO Users(username, password, first_name, last_name ) VALUES(?,?,?,?)")
+		for i := 0; i < len(allEmails); i++ {
+			if allUsersNames[i] == username {
+				Message := "Email is already taken"
+				Tmpl.ExecuteTemplate(w, "Register", Message)
+				return
+			}
+		}
+		insForm, err := db.Prepare("INSERT IGNORE INTO Users(username, password, email, first_name, last_name ) VALUES(?,?,?,?,?)")
 		if err != nil {
 			fmt.Println(err.Error)
 		}
 		hash, _ := properties.HashPassword(password)
-		insForm.Exec(username, hash, first_name, last_name)
-		log.Println("INSERT: Username: " + username + " | Password: " + string(hash) + " | First Name: " + first_name + " | Last Name : " + last_name)
+		insForm.Exec(username, hash, email, first_name, last_name)
+		log.Println("INSERT: Username: " + username + " | Password: " + string(hash) + "Email: " + email + " | First Name: " + first_name + " | Last Name : " + last_name)
 
 	}
 

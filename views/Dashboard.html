@@ -1,7 +1,7 @@
 {{ define "Dashboard" }}
    {{ template "Menu"  }}
   {{ template "Header" }}
- 
+
    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
     <center>
     <h2>Dashboard</h2>
@@ -25,7 +25,7 @@
         <div class="card-content">
         {{ range .}}
           <span class="card-title">Pending Tickets:     <span class="new badge red">{{.NumIssues}}</span> </span>
-       
+
           {{ end }}
         </div>
         <div class="card-action">
@@ -52,13 +52,13 @@
     </div>
     </div>
 
-
+ <div class="col s12 m6">
     <div class="card">
     <div class="card-content">
-      <p> <canvas id="line-chart" style="height: 300px; width: 80%;"></canvas></p>
+      <p> <canvas id="line-chart" style="height: 300px; width: 100%;"></canvas></p>
     </div>
     </div>
-
+</div>
 
             </div>
 <script type="text/javascript">
@@ -117,12 +117,12 @@ new Chart(document.getElementById("line-chart"), {
 
     labels:      [ {{range  $index, $element := .Dates}} {{if $index}},{{end}}{{$element}} {{ end }}]     ,
 
-    datasets: [{ 
+    datasets: [{
 
         data:   [{{range  $key, $value := .IssuesPerDate}}{{if $key}},{{end}}{{$value}}  {{ end }}]        ,
 
         lineTension: 0.1,
-        label: "Issues",
+        label: "Tickets",
         borderColor: "rgba(75, 192, 192 ,1)",
         backgroundColor: "rgba(75, 192, 192 ,0.4)",
         borderCapStyle : 'butt',
@@ -162,5 +162,3 @@ function addData(chart, label, data) {
 
   {{ template "Footer" }}
 {{ end }}
-
-

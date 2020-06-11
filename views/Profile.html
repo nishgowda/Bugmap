@@ -1,109 +1,74 @@
 {{ define "Profile" }}
-   {{ template "Menu"  }}
-  {{ template "Header" }}
- 
-   <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
-    <center>
-    <h2>Profile</h2>
-        </center>
+{{ template "Menu" }}
+{{ template "Header" }}
+
+<center>
+
+
+  <i class="large material-icons">account_circle </i> 
+    <h5>{{range .}} {{ .Email }} {{ end }} <h5>
+    </center>
     <div class="container">
+
   <div class="row">
+    <div class="col s12">
+      <ul class="tabs">
+        <li class="tab col s3"><a href="#about">About</a></li>
+        <li class="tab col s3"><a  href="#collabs">Collaborators</a></li>
+        <li class="tab col s3"><a href="#projects">Projects</a></li>
+      </ul>
+    </div>
+    <div id="about" class="col s12">About Page</div>
+    <div id="collabs" class="col s12">
+     <div class="row">
     <div class="col s12 m6">
+         {{range .}} 
+         {{range $index := .Collaborators}}  
       <div class="card">
         <div class="card-content">
-        {{ range .}}
-          <span class="card-title">Ongoing Projects: <span class="new badge red"> {{.NumProjects}} </span></span>
-          {{ end }}
-        </div>
-        <div class="card-action">
-          <a href="/displayprojects">View</a>
-        </div>
-      </div>
+   <i class="material-icons">account_circle</i> {{ $index }}
     </div>
-    <div class="col s12 m6">
-      <div class="card">
+    </div>
+     {{end}}
+     {{end }}
+     </div>
+     <div class="col s12 m6">
+     {{ range . }}
+     {{ range $value := .CollabUids}}
+     <div class="card">
         <div class="card-content">
-        {{ range .}}
-          <span class="card-title">Pending Tickets:     <span class="new badge red">{{.NumIssues}}</span> </span>
-       
-          {{ end }}
-        </div>
-        <div class="card-action">
-          <a href="/bugs">View</a>
-        </div>
-      </div>
-    </div>
+     <a href="/profilesearch?uid={{ $value }}">View</a>
+     </div>
+     </div>
+     {{end }}
+     {{ end}}
+     </div>
+</div>
+</div>
+
+    <div id="projects" class="col s12">
+         <div class="row">
+    <div class="col s12 m6">
+    {{range .}}
+    {{ range $element := .Projects}}
+          <div class="card">
+        <div class="card-content">
+     <i class="material-icons">assignment</i>  {{ $element }}  
+     </div>
+     </div>
+     {{end}}
+         {{ end }}
+     </div>
   </div>
   </div>
-   <div class="card">
-    <div class="card-content">
-      <p> <canvas id="myChart" style="height: 300px; width: 100%;"></canvas></p>
-    </div>
-    </div>
-
-       <div class="card">
-    <div class="card-content">
-      <p> <canvas id="bar-chart" style="height: 300px; width: 100%;"></canvas></p>
-    </div>
-    </div>
+  </div>
 
 
-            </div>
-<script type="text/javascript">
-var ctx = document.getElementById('myChart').getContext('2d');
-var chart = new Chart(ctx, {
-     type: 'doughnut',
-    data: {
-      labels: ["Low", "Medium", "High", "Critical"],
-      datasets: [
-        {
-          label: "Pending Urgencies",
-          backgroundColor: ["#5cb85c", "#0275d8","#f0ad4e","#d9534f"],
-          {{ range .}}
-          data: [{{.NumLow}},{{.NumMedium}},{{.NumHigh}},{{.NumCritical}}]
-          {{ end }}
-        }
-      ]
-    },
-    options: {
-      title: {
-        display: true,
-        text: 'Pending Urgencies'
-      }
-    }
-});
 
-new Chart(document.getElementById("bar-chart"), {
-    type: 'pie',
-    data: {
-
-      labels: ["Feature", "Issue", "Note"],
-      datasets: [
-        {
-          label: "Number of Tickets",
-          {{ range .}}
-          backgroundColor: ["#3e95cd","#8e5ea2","#3cba9f"],
-          data: [{{ .NumFeature }},{{ .NumIssue }},{{ .NumNote }}]
-          {{ end }}
-
-        }
-      ]
-    },
-    options: {
-      legend: { display: false },
-      title: {
-        display: true,
-        text: "Number of Tickets per Type"
-      }
-    }
-});
-
+<script>
+  var instance = M.Tabs.getInstance(elem);
+  // Or with jQuery
 
 </script>
-    </div>
 
-
-  {{ template "Footer" }}
 {{ end }}
-
-

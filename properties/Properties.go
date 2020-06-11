@@ -47,6 +47,9 @@ func UniqueString(stringSlice []string) []string {
 	return list
 }
 
+func RemoveIndex(s []string, index int) []string {
+	return append(s[:index], s[index+1:]...)
+}
 func DotEnvVariable(key string) string {
 
 	// load .env file

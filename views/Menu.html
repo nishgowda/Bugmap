@@ -13,6 +13,8 @@
 
       <li><a class="dropdown-trigger" href="#!" data-target="dropdown1"><i class="material-icons left">person</i><i class="material-icons right">arrow_drop_down</i></a></li>
       <ul id="dropdown1" class="dropdown-content">
+    
+    <li><a href="/userprofile">Profile</a></li>
   <li><a href="/dashboard">Dashboard</a></li>
   <li><a href="/logoutpage">Logout</a></li>
   <li class="divider"></li>
@@ -23,18 +25,6 @@
 </nav>
 
 </div>
-
-  <ul id="slide-out" class="sidenav">
-    <li><a href="#!"><i class="material-icons">cloud</i>First Link With Icon</a></li>
-    {{ range .}}
-    <li><a href="/showproject?id={{ .Id }}">{{.ProjectName}}</a></li>
-    {{ end }}
-    <li><div class="divider"></div></li>
-    <li><a class="subheader">Subheader</a></li>
-    <li><a class="waves-effect" href="#!">Third Link With Waves</a></li>
-  </ul>
-  <a href="#" data-target="slide-out" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-        
 
 <script>
 $(".dropdown-trigger").dropdown();
@@ -50,8 +40,5 @@ $(".dropdown-trigger").dropdown();
 
   // Or with jQuery
 
-  $(document).ready(function(){
-    $('.sidenav').sidenav();
-  });
 </script>
 {{ end }}

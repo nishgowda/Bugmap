@@ -1,0 +1,73 @@
+{{ define "ProfileSearch" }}
+{{ template "Menu" }}
+{{ template "Header" }}
+
+<center>
+
+ 
+  <i class="large material-icons">account_circle </i> 
+    <h5>{{range .}} {{ .Email }} {{ end }} <h5>
+    </center>
+    <div class="container">
+
+  <div class="row">
+    <div class="col s12">
+      <ul class="tabs">
+        <li class="tab col s3"><a href="#about">About</a></li>
+        <li class="tab col s3"><a  href="#collabs">Collaborators</a></li>
+        <li class="tab col s3"><a href="#projects">Projects</a></li>
+      </ul>
+    </div>
+    <div id="about" class="col s12">About Page</div>
+    <div id="collabs" class="col s12">
+     <div class="row">
+    <div class="col s12 m6">
+         {{range .}} 
+         {{range $index := .Collaborators}}  
+      <div class="card">
+        <div class="card-content">
+   <i class="material-icons">account_circle</i> {{ $index }}
+    </div>
+    </div>
+     {{end}}
+     {{end }}
+     </div>
+     <div class="col s12 m6">
+     {{ range . }}
+     {{ range $value := .CollabUids}}
+     <div class="card">
+        <div class="card-content">
+    <a href="/profilesearch?uid={{ $value }}">View    <i class="material-icons">arrow_forward</i></a>
+     </div>
+     </div>
+     {{end }}
+     {{ end}}
+     </div>
+</div>
+</div>
+
+    <div id="projects" class="col s12">
+         <div class="row">
+    <div class="col s12 m6">
+    {{range .}}
+    {{ range $element := .Projects}}
+          <div class="card">
+        <div class="card-content">
+     <i class="material-icons">assignment</i>  {{ $element }}  
+     </div>
+     </div>
+     {{end}}
+         {{ end }}
+     </div>
+  </div>
+  </div>
+  </div>
+
+</center>
+<script>
+  var instance = M.Tabs.getInstance(elem);
+  // Or with jQuery
+
+</script>
+
+{{ end }}
