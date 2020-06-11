@@ -7,22 +7,23 @@ Bugmap is an issue management system for developers to monitor bugs and issues f
 go get github.com/nishgowda/Bugmap
 ```
 
-### How to Run: 
-- You must create a MySQL database and just create .txt files with your Database Name and Password
-- Visit localhost:8080
-
 ## The Tech Stack:
 
-### Backend:
-- Go REST API
-- MySQL Database
+### Backend Microservices:
+- Go C.R.U.D RESTful API
+- MySQL relational databases. M.N and 1.N
+
+## Security:
+- JSON Web Token Server that protects API (Written in Go)
+- OAuth2.0 with Google and GitHub
+- Hash Encryption algorithm to protect user passwords that don't sign in with third parties
 
 ### Frontend: 
-- HTML
-- CSS
+- HTML5
+- CSS3
 - Materialize
 - Javascript
 
 ## To Do:
-- [ ] Add Authentication
 - [ ] Improve UI
+
