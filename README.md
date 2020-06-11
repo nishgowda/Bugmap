@@ -31,4 +31,4 @@ go get github.com/nishgowda/Bugmap
 - [ ] Deploy
 
 
-### A project by Nish Gowda
+A project by Nish Gowda
