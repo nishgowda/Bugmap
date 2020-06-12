@@ -7,4 +7,5 @@ type Projects struct {
 	Description  string
 	Technologies string
 	Users        []string
+	UserEmail    string
 }

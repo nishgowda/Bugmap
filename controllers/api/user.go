@@ -254,19 +254,19 @@ func Search(w http.ResponseWriter, r *http.Request) {
 		db := controllers.DbConn()
 		var exists bool
 		searchDb, err := db.Query("select exists(select email from users where email=?)", search)
+		emp := models.Projects{}
+		res := []models.Projects{}
 		if err != nil {
 			log.Fatal(err.Error())
 		}
-		emp := models.Users{}
-		res := []models.Users{}
 
 		for searchDb.Next() {
-
 			err = searchDb.Scan(&exists)
 			if err != nil {
 				log.Fatal(err.Error())
 			}
 			if exists {
+
 				emailDb, err := db.Query("select email, uid from users where email=?", search)
 				if err != nil {
 					log.Fatal(err.Error())
@@ -278,63 +278,53 @@ func Search(w http.ResponseWriter, r *http.Request) {
 					if err != nil {
 						log.Fatal(err.Error())
 					}
-					emp.Email = email
-					emp.Uid = uid
+					emp.UserEmail = email
+					emp.UserId = uid
+					res = append(res, emp)
 				}
-
-				defer db.Close()
-				projDb, err := db.Query("select projects.id from projects inner join users_projects on users_projects.project_id=projects.id where users_projects.user_id=?", emp.Uid)
+				fmt.Println("ja")
+				fmt.Println(res)
+				controllers.Tmpl.ExecuteTemplate(w, "SearchResult", res)
+			} else if exists == false {
+				projDbExist, err := db.Query("select exists(select name, id from projects where name=?)", search)
 				if err != nil {
 					log.Fatal(err.Error())
 				}
-				emp.ProjectIDs = []int{}
-				var projectID int
-				for projDb.Next() {
-					err = projDb.Scan(&projectID)
+				for projDbExist.Next() {
+					var projExist bool
+					err = projDbExist.Scan(&projExist)
 					if err != nil {
 						log.Fatal(err.Error())
 					}
-					emp.ProjectIDs = append(emp.ProjectIDs, projectID)
-				}
-				allProjDb, err := db.Query("select projects.name from projects inner join users_projects on users_projects.project_id=projects.id where users_projects.user_id=?", emp.Uid)
-				if err != nil {
-					log.Fatal(err.Error())
-				}
-				emp.Projects = []string{}
-				var names string
-				for allProjDb.Next() {
-					err = allProjDb.Scan(&names)
-					if err != nil {
-						log.Fatal(err.Error())
-					}
-					emp.Projects = append(emp.Projects, names)
-				}
-				for i := 0; i < len(emp.ProjectIDs); i++ {
-					collabsDb, err := db.Query("select users.email, users.uid from users inner join users_projects on users_projects.user_id=users.uid where users_projects.project_id=?", emp.ProjectIDs[i])
-					if err != nil {
-						log.Fatal(err.Error())
-					}
-					for collabsDb.Next() {
-						var emails string
-						var uid int
-						err = collabsDb.Scan(&emails, &uid)
+					if projExist {
+						projDb, err := db.Query("select name, id from projects where name=?", search)
 						if err != nil {
 							log.Fatal(err.Error())
 						}
-						emp.Collaborators = properties.UniqueString(append(emp.Collaborators, emails))
-						emp.CollabUids = properties.UniqueInt(append(emp.CollabUids, uid))
+						for projDb.Next() {
+							var projName string
+							var projId int
+							err = projDb.Scan(&projName, &projId)
+							if err != nil {
+								log.Fatal(err.Error())
+							}
+							emp.ProjectName = projName
+							emp.Id = projId
+							res = append(res, emp)
+						}
+						fmt.Println("jedsada")
+						fmt.Println(res)
+						controllers.Tmpl.ExecuteTemplate(w, "SearchResult", res)
 
 					}
-
 				}
-				res = append(res, emp)
+
 			} else {
 				http.Redirect(w, r, "/dashboard", 301)
-				return
 			}
+			defer db.Close()
 		}
-		defer db.Close()
-		controllers.Tmpl.ExecuteTemplate(w, "ProfileSearch", res)
+
 	}
 }
 

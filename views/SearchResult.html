@@ -1,0 +1,52 @@
+{{ define "SearchResult" }}
+{{ template "Menu" }}
+{{ template "Header" }}
+
+<center>
+<h2>Search Results<h2>
+</center>
+ <div class="container">
+   <div class="row">
+    <div class="col s12">
+      <ul class="tabs">
+        <li class="tab col s3"><a href="#Users">Users</a></li>
+        <li class="tab col s3"><a  href="#Projects">Projects</a></li>
+      </ul>
+    </div>
+      <div id="Users" class="col s12">
+ <div class="row">
+    <div class="col s12 m6">
+         {{range .}} 
+      <div class="card">
+        <div class="card-content">
+   <i class="material-icons">account_circle</i> {{ .UserEmail }}
+    <a href="/profilesearch?uid={{ .UserId }}">View    <i class="material-icons">arrow_forward</i></a>
+    </div>
+    </div>
+     {{end}}
+     </div>
+     </div>
+     </div>
+
+ <div id="Projects" class="col s12">
+ <div class="row">
+    <div class="col s12 m6">
+         {{range .}} 
+      <div class="card">
+        <div class="card-content">
+   <i class="material-icons">assignment</i> {{ .ProjectName }}
+    <a href="/showproject?id={{ .Id }}">View    <i class="material-icons">arrow_forward</i></a>
+    </div>
+    </div>
+     {{end}}
+     </div>
+     </div>
+     </div>
+     </div>
+     </div>
+     
+
+
+     {{ end }}
+
+{{ template "footer" }}
