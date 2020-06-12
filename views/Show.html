@@ -2,20 +2,7 @@
   {{ template "Header" }}
     {{ template "Menu"  }}
 
-<style>
-    .container  {
-  display: flex;
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-}
 
-.container .row {
-  margin: 0 auto;
-}
-   </style>
    <div class="container">
     <center>
       <div class="row">
@@ -23,7 +10,7 @@
       <div class="card">
         <div class="card-content">
           <span class="card-title">{{.Name}}</span>
-          <p>TYpe: {{.Kind}}</p>
+          <p>Type: {{.Kind}}</p>
           <p>Priority: {{.Priority}}</p>
             <p>Date: {{.Date}}</p>
           <p>Description: {{.Description}}</p>

@@ -1,7 +1,27 @@
 {{ define "SearchResult" }}
 {{ template "Menu" }}
 {{ template "Header" }}
+<style>
+ .tabs .tab a{
+            color:#000;
+        } /*Black color to the text*/
 
+        .tabs .tab a:hover {
+            background-color:#0097FF;
+            color:#000;
+        } /*Text color on hover*/
+
+        .tabs .tab a.active {
+            background-color:#0097FF;
+            color:#000;
+        } /*Background and text color when a tab is active*/
+
+        .tabs .indicator {
+            background-color:#000;
+        } /*Color of underline*/
+
+
+</style>
 <center>
 <h2>Search Results<h2>
 </center>
@@ -19,8 +39,7 @@
          {{range .}} 
       <div class="card">
         <div class="card-content">
-   <i class="material-icons">account_circle</i> {{ .UserEmail }}
-    <a href="/profilesearch?uid={{ .UserId }}">View    <i class="material-icons">arrow_forward</i></a>
+    <a href="/profilesearch?uid={{ .UserId }}">  <i class="material-icons">account_circle</i> {{ .UserEmail }} </a>
     </div>
     </div>
      {{end}}
@@ -34,8 +53,7 @@
          {{range .}} 
       <div class="card">
         <div class="card-content">
-   <i class="material-icons">assignment</i> {{ .ProjectName }}
-    <a href="/showproject?id={{ .Id }}">View    <i class="material-icons">arrow_forward</i></a>
+    <a href="/showproject?id={{ .Id }}"> <i class="material-icons">assignment</i> {{ .ProjectName }} </a>
     </div>
     </div>
      {{end}}

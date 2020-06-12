@@ -418,7 +418,7 @@ func InviteUser(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Fatal(err.Error())
 			}
-
+			emp := controllers.Project_id
 			var invitedUser string
 			for selDb.Next() {
 				err = selDb.Scan(&invitedUser)
@@ -431,8 +431,8 @@ func InviteUser(w http.ResponseWriter, r *http.Request) {
 				log.Fatal(err.Error())
 			}
 			fmt.Println(invitedUser)
-			fmt.Println(controllers.Project_id)
-			inviteDb.Exec(invitedUser, controllers.Project_id)
+			fmt.Println(emp)
+			inviteDb.Exec(invitedUser, emp)
 			fmt.Println("Inserted")
 		}
 		defer db.Close()
