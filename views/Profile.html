@@ -26,7 +26,7 @@
          {{range $index := .Collaborators}}  
       <div class="card">
         <div class="card-content">
-   <i class="material-icons">account_circle</i> {{ $index }}
+   <i class="material-icons" style="inline-block">account_circle</i> {{ $index }}
     </div>
     </div>
      {{end}}
@@ -37,7 +37,7 @@
      {{ range $value := .CollabUids}}
      <div class="card">
         <div class="card-content">
-    <a href="/profilesearch?uid={{ $value }}">View     <i class="material-icons">arrow_forward</i> </a>
+    <a href="/profilesearch?uid={{ $value }}" style="inline-block">View<i class="material-icons">arrow_forward</i> </a>
      </div>
      </div>
      {{end }}

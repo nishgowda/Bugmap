@@ -1,6 +1,7 @@
 {{ define "Index" }}
   {{ template "Header" }}
     {{ template "Menu"  }}
+
     <center>
 
     <h2>Pending Tickets</h2>
@@ -37,17 +38,18 @@
     {{ end }}
        </tbody>
     </table>
-
     <div>
       <center>
-      <a class="btn-floating btn-large waves-effect waves" onclick="window.location.href='/new';" style="background-color: #1B4192"><i class="material-icons">add</i></a>
+      <a class="btn-floating btn-large waves-effect waves tooltipped"  data-position="bottom" data-tooltip="I am a tooltip"onclick="window.location.href='/new';" style="background-color: #1B4192"><i class="material-icons">add</i></a>
     </center>
     </div>
     </div>
-
-
-
-  
+    <script>
+ document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.tooltipped');
+    var instances = M.Tooltip.init(elems, options);
+  });
+</script>
 
   {{ template "Footer" }}
 {{ end }}

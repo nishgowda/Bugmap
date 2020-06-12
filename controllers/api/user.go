@@ -213,6 +213,131 @@ func UserSearch(w http.ResponseWriter, r *http.Request) {
 	controllers.Tmpl.ExecuteTemplate(w, "ProfileSearch", res)
 
 }
+
+func Search(w http.ResponseWriter, r *http.Request) {
+	c, err := r.Cookie("token")
+	//fmt.Println(r.Cookie("token"))
+	if err != nil {
+		if err == http.ErrNoCookie {
+			w.WriteHeader(http.StatusUnauthorized)
+			fmt.Println("404")
+			return
+		}
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Println("401")
+		return
+	}
+
+	tknStr := c.Value
+	claims := &models.Claims{}
+
+	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if !tkn.Valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	fmt.Println("hello")
+	if r.Method == "POST" {
+		r.ParseForm()
+		search := r.FormValue("search")
+		fmt.Println(search)
+		db := controllers.DbConn()
+		var exists bool
+		searchDb, err := db.Query("select exists(select email from users where email=?)", search)
+		if err != nil {
+			log.Fatal(err.Error())
+		}
+		emp := models.Users{}
+		res := []models.Users{}
+
+		for searchDb.Next() {
+
+			err = searchDb.Scan(&exists)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			if exists {
+				emailDb, err := db.Query("select email, uid from users where email=?", search)
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+				for emailDb.Next() {
+					var email string
+					var uid int
+					err = emailDb.Scan(&email, &uid)
+					if err != nil {
+						log.Fatal(err.Error())
+					}
+					emp.Email = email
+					emp.Uid = uid
+				}
+
+				defer db.Close()
+				projDb, err := db.Query("select projects.id from projects inner join users_projects on users_projects.project_id=projects.id where users_projects.user_id=?", emp.Uid)
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+				emp.ProjectIDs = []int{}
+				var projectID int
+				for projDb.Next() {
+					err = projDb.Scan(&projectID)
+					if err != nil {
+						log.Fatal(err.Error())
+					}
+					emp.ProjectIDs = append(emp.ProjectIDs, projectID)
+				}
+				allProjDb, err := db.Query("select projects.name from projects inner join users_projects on users_projects.project_id=projects.id where users_projects.user_id=?", emp.Uid)
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+				emp.Projects = []string{}
+				var names string
+				for allProjDb.Next() {
+					err = allProjDb.Scan(&names)
+					if err != nil {
+						log.Fatal(err.Error())
+					}
+					emp.Projects = append(emp.Projects, names)
+				}
+				for i := 0; i < len(emp.ProjectIDs); i++ {
+					collabsDb, err := db.Query("select users.email, users.uid from users inner join users_projects on users_projects.user_id=users.uid where users_projects.project_id=?", emp.ProjectIDs[i])
+					if err != nil {
+						log.Fatal(err.Error())
+					}
+					for collabsDb.Next() {
+						var emails string
+						var uid int
+						err = collabsDb.Scan(&emails, &uid)
+						if err != nil {
+							log.Fatal(err.Error())
+						}
+						emp.Collaborators = properties.UniqueString(append(emp.Collaborators, emails))
+						emp.CollabUids = properties.UniqueInt(append(emp.CollabUids, uid))
+
+					}
+
+				}
+				res = append(res, emp)
+			} else {
+				http.Redirect(w, r, "/dashboard", 301)
+				return
+			}
+		}
+		defer db.Close()
+		controllers.Tmpl.ExecuteTemplate(w, "ProfileSearch", res)
+	}
+}
+
 func Dashboard(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("token")
 	//fmt.Println(r.Cookie("token"))

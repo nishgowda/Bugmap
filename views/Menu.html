@@ -1,12 +1,37 @@
 {{ define "Menu" }}
 {{ template "Header"}}
 
+<style>
+nav .nav-wrapper form, nav .nav-wrapper form .input-field{
+height: 63px;
+vertical-align: middle;
+
+
+}
+</style>
 <!-- Dropdown Structure -->
   <div class="navbar-fixed">
+
+   <div class="row">
 <nav style="background-color: #1B4192">
-  <div class="nav-wrapper">
-    <a href="#" class="brand-logo center">Bugmap</a>
+     <div class="nav-wrapper">
+  <div class="col s12">
+          <a href="#" class="brand-logo">
+            Bugmap
+          </a>
+            <a href="#" data-target="mobile-demo" class="sidenav-trigger">
+            <i class="material-icons">menu</i>
+          </a>
     <ul class="right hide-on-med-and-down">
+      <li>
+          <form method="POST" action="search">
+        <div class="input-field">
+          <input id="search" type="search" name="search"required>
+          <label for="search"><i class="material-icons">search</i></label>
+          <i class="material-icons">close</i>
+        </div>
+      </form>
+      </li>
       <li><a href="/displayprojects">Projects</a></li>
       <li><a href="/bugs">Tickets</a></li>
       <!-- Dropdown Trigger -->
@@ -20,8 +45,13 @@
   <li class="divider"></li>
 </ul>
     </ul>
-
+       
+</div>
   </div>
+  </div>
+
+
+
 </nav>
 
 </div>
