@@ -1,7 +1,6 @@
 {{ define "Dashboard" }}
-   {{ template "Menu"  }}
   {{ template "Header" }}
-
+   {{ template "Menu"  }}
    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
     <center>
     <h2>Dashboard</h2>
@@ -16,7 +15,7 @@
           {{ end }}
         </div>
         <div class="card-action">
-          <a href="/displayprojects">View</a>
+          <a href="/displayprojects" style="color: #3949ab">View</a>
         </div>
       </div>
     </div>
@@ -29,7 +28,7 @@
           {{ end }}
         </div>
         <div class="card-action">
-          <a href="/bugs">View</a>
+          <a href="/bugs" style="color: #3949ab">View</a>
         </div>
       </div>
     </div>

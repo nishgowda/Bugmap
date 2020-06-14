@@ -3,6 +3,7 @@ package handler
 import (
 	"log"
 	"models/controllers/api"
+	"models/controllers/editor"
 	controllers "models/controllers/middleware"
 
 	"net/http"
@@ -43,5 +44,7 @@ func HandlerFunc() {
 	http.HandleFunc("/insert", api.Insert)
 	http.HandleFunc("/update", api.Update)
 	http.HandleFunc("/delete", api.Delete)
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	http.HandleFunc("/editor", editor.CodeEditor)
 	http.ListenAndServe(":8080", nil)
 }

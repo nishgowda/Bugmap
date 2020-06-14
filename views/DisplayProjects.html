@@ -1,7 +1,11 @@
 {{ define "DisplayProjects" }}
-  {{ template "Menu" }}
   {{ template "Header" }}
-
+    {{ template "Menu" }}
+<style>
+.black-text li a{
+  color: black;
+ }
+</style>
     <center>
     <h2> Your Projects </h2>
          <a class="btn-floating btn-large waves-effect waves" onclick="window.location.href='/newproject';" style="background-color: #006CFF"><i class="material-icons">add</i></a>
@@ -15,17 +19,17 @@
     <div class="card-content">
       <span class="card-title activator grey-text text-darken-4">{{.ProjectName}}<i class="material-icons right">more_vert</i></span>
               <div class="card-action">
-          <a href="/showproject?id={{ .Id }}">View</a>
-          <a href="/editproject?id={{ .Id }}">Edit</a>
-          <a href="/deleteproject?id={{ .Id }}">Resolive</a>
+          <a href="/showproject?id={{ .Id }}" style="color: #3949ab">View</a>
+          <a href="/editproject?id={{ .Id }}"style="color: #3949ab">Edit</a>
+          <a href="/deleteproject?id={{ .Id }}" style="color: #3949ab">Resolive</a>
 
 
         </div>
     </div>
     <div class="card-reveal">
-      <span class="card-title grey-text text-darken-4">Description: {{.Description}}<i class="material-icons right">close</i></span>
-      <p>Technologies: {{.Technologies}}</p>
-      <p>Contributers: {{range $index, $element := .Users}}{{if $index}}, {{end}} {{$element}} {{end}}</p>
+      <span class="card-title grey-text text-darken-4" style="font-size: 20px font-weight: bold"> {{.Description}}<i class="material-icons right">close</i></span>
+      <p style="font-size: 15px">Technologies: {{.Technologies}}</p>
+      <p style="font-size: 15px">Contributers: {{range $index, $element := .Users}}{{if $index}}, {{end}} {{$element}} {{end}}</p>
     </div>
 
 
