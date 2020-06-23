@@ -60,7 +60,7 @@ func UserProfile(w http.ResponseWriter, r *http.Request) {
 		emp.Email = email
 	}
 	defer db.Close()
-	projDb, err := db.Query("select projects.id from projects inner join users_projects on users_projects.project_id=projects.id where users_projects.user_id=?", claims.Uid)
+	projDb, err := db.Query("select projects.id from projects inner join users_projects on users_projects.project_id=projects.id where users_projects.user_id=? and projects.status not in ('private')", claims.Uid)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -74,7 +74,7 @@ func UserProfile(w http.ResponseWriter, r *http.Request) {
 		emp.ProjectIDs = append(emp.ProjectIDs, projectID)
 	}
 	defer db.Close()
-	allProjDb, err := db.Query("select projects.name from projects inner join users_projects on users_projects.project_id=projects.id where users_projects.user_id=?", claims.Uid)
+	allProjDb, err := db.Query("select projects.name from projects inner join users_projects on users_projects.project_id=projects.id where users_projects.user_id=? and projects.status not in ('private')", claims.Uid)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -90,7 +90,9 @@ func UserProfile(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	for i := 0; i < len(emp.ProjectIDs); i++ {
-		collabsDb, err := db.Query("select users.email, users.uid from users inner join users_projects on users_projects.user_id=users.uid where users_projects.project_id=?", emp.ProjectIDs[i])
+		query := fmt.Sprintf("select users.email, users.uid from users inner join users_projects on users_projects.user_id=users.uid where users_projects.project_id=%d and  users_projects.user_id not in (%d);", emp.ProjectIDs[i], claims.Uid)
+		fmt.Println(query)
+		collabsDb, err := db.Query(query)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
@@ -106,7 +108,39 @@ func UserProfile(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
+	emp.SessionId = []int{}
+	codeSessionCollabs, err := db.Query("select code_sessions.id from code_sessions inner join user_code_sessions on user_code_sessions.code_session_id=code_sessions.id where user_code_sessions.user_id=?", claims.Uid)
+	if err != nil {
+		panic(err.Error())
+	}
+	for codeSessionCollabs.Next() {
+		var id int
+		err = codeSessionCollabs.Scan(&id)
+		if err != nil {
+			panic(err.Error())
+		}
+		emp.SessionId = append(emp.SessionId, id)
+	}
+	for i := 0; i < len(emp.SessionId); i++ {
+		query := fmt.Sprintf("select users.email, users.uid from users inner join user_code_sessions on user_code_sessions.user_id=users.uid where user_code_sessions.code_session_id=%d and user_code_sessions.user_id not in (%d);", emp.SessionId[i], claims.Uid)
+		fmt.Println(query)
+		collabsDb, err := db.Query(query)
+		if err != nil {
+			panic(err.Error())
+		}
+		for collabsDb.Next() {
+			var emails string
+			var uid int
+			err = collabsDb.Scan(&emails, &uid)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			emp.Collaborators = properties.UniqueString(append(emp.Collaborators, emails))
+			emp.CollabUids = properties.UniqueInt(append(emp.CollabUids, uid))
+		}
+	}
 	defer db.Close()
+	fmt.Println(emp.Collaborators)
 	res = append(res, emp)
 	fmt.Println(res)
 	controllers.Tmpl.ExecuteTemplate(w, "Profile", res)
@@ -163,7 +197,7 @@ func UserSearch(w http.ResponseWriter, r *http.Request) {
 
 	}
 	defer db.Close()
-	projDb, err := db.Query("select projects.id from projects inner join users_projects on users_projects.project_id=projects.id where users_projects.user_id=?", nID)
+	projDb, err := db.Query("select projects.id from projects inner join users_projects on users_projects.project_id=projects.id where users_projects.user_id=? and projects.status not in ('private')", nID)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -177,7 +211,7 @@ func UserSearch(w http.ResponseWriter, r *http.Request) {
 		emp.ProjectIDs = append(emp.ProjectIDs, projectID)
 	}
 
-	allProjDb, err := db.Query("select projects.name from projects inner join users_projects on users_projects.project_id=projects.id where users_projects.user_id=?", nID)
+	allProjDb, err := db.Query("select projects.name from projects inner join users_projects on users_projects.project_id=projects.id where users_projects.user_id=? and projects.status not in ('private')", nID)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
@@ -191,7 +225,9 @@ func UserSearch(w http.ResponseWriter, r *http.Request) {
 		emp.Projects = append(emp.Projects, names)
 	}
 	for i := 0; i < len(emp.ProjectIDs); i++ {
-		collabsDb, err := db.Query("select users.email, users.uid from users inner join users_projects on users_projects.user_id=users.uid where users_projects.project_id=?", emp.ProjectIDs[i])
+		query := fmt.Sprintf("select users.email, users.uid from users inner join users_projects on users_projects.user_id=users.uid where users_projects.project_id=%d and  users_projects.user_id not in (%s);", emp.ProjectIDs[i], nID)
+		fmt.Println(query)
+		collabsDb, err := db.Query(query)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
@@ -204,9 +240,38 @@ func UserSearch(w http.ResponseWriter, r *http.Request) {
 			}
 			emp.Collaborators = properties.UniqueString(append(emp.Collaborators, emails))
 			emp.CollabUids = properties.UniqueInt(append(emp.CollabUids, uid))
-
 		}
-
+	}
+	emp.SessionId = []int{}
+	codeSessionCollabs, err := db.Query("select code_sessions.id from code_sessions inner join user_code_sessions on user_code_sessions.code_session_id=code_sessions.id where user_code_sessions.user_id=?", nID)
+	if err != nil {
+		panic(err.Error())
+	}
+	for codeSessionCollabs.Next() {
+		var id int
+		err = codeSessionCollabs.Scan(&id)
+		if err != nil {
+			panic(err.Error())
+		}
+		emp.SessionId = append(emp.SessionId, id)
+	}
+	for i := 0; i < len(emp.SessionId); i++ {
+		query := fmt.Sprintf("select users.email, users.uid from users inner join user_code_sessions on user_code_sessions.user_id=users.uid where user_code_sessions.code_session_id=%d and user_code_sessions.user_id not in (%s);", emp.SessionId[i], nID)
+		fmt.Println(query)
+		collabsDb, err := db.Query(query)
+		if err != nil {
+			panic(err.Error())
+		}
+		for collabsDb.Next() {
+			var emails string
+			var uid int
+			err = collabsDb.Scan(&emails, &uid)
+			if err != nil {
+				log.Fatal(err.Error())
+			}
+			emp.Collaborators = properties.UniqueString(append(emp.Collaborators, emails))
+			emp.CollabUids = properties.UniqueInt(append(emp.CollabUids, uid))
+		}
 	}
 	res = append(res, emp)
 	fmt.Println(res)
@@ -297,7 +362,7 @@ func Search(w http.ResponseWriter, r *http.Request) {
 						log.Fatal(err.Error())
 					}
 					if projExist {
-						projDb, err := db.Query("select name, id from projects where name=?", search)
+						projDb, err := db.Query("select name, id from projects where name=? and status not in ('private')", search)
 						if err != nil {
 							log.Fatal(err.Error())
 						}
@@ -315,12 +380,16 @@ func Search(w http.ResponseWriter, r *http.Request) {
 						fmt.Println("jedsada")
 						fmt.Println(res)
 						controllers.Tmpl.ExecuteTemplate(w, "SearchResult", res)
-
+					} else {
+						emp.UserId = 0
+						emp.Id = 0
+						res = append(res, emp)
+						controllers.Tmpl.ExecuteTemplate(w, "SearchResult", res)
 					}
 				}
 
 			} else {
-				http.Redirect(w, r, "/dashboard", 301)
+				controllers.Tmpl.ExecuteTemplate(w, "SearchResult", res)
 			}
 			defer db.Close()
 		}

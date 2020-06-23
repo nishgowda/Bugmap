@@ -76,7 +76,7 @@ input.firepad-userlist-name-input {
   left: 38px;
   top: 23px;
   width: 300px; /* I'd rather it clip than wrap. */
-  font-size: 9px;
+  font-size:14px;
   line-height: 11px;
 }
 
@@ -85,5 +85,5 @@ input.firepad-userlist-name-input {
   top: 2px;
   left: 38px;
   width: 115px;
-  font-size: 11px;
+  font-size: 14px;
 }

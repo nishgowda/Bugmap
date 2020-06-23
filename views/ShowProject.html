@@ -1,7 +1,15 @@
 {{ define "ShowProject" }}
   {{ template "Header" }}
     {{ template "Menu"  }}
-    
+    <style>
+.isDisabled {
+  color: currentColor;
+  cursor: not-allowed;
+  opacity: 0.5;
+  text-decoration: none;
+}
+
+    </style>
     <div class="container">
     <center>
       <div class="row">
@@ -12,10 +20,19 @@
           <p>Technologies: {{.Technologies}}</p>
           <p>Description: {{.Description}}</p>
           <p>Contributers: {{range $index, $element := .Users}} {{if $index}}, {{end}}{{$element}} {{end}}</p>
+
         </div>
         <div class="card-action">
-         <a href="/editproject?id={{ .Id }}" class="card-link" style="color: #3949ab">Edit</a>
-          <a href="/deleteproject?id={{ .Id }}" class="card-link" style="color: #3949ab">Delete</a>
+        {{ if eq .Owner .Viewer }}
+         <a href="/project/edit?id={{ .Id }}" class="card-link" style="color: #3949ab">Edit</a>
+         {{ else }}
+          <a class="isDisabled" href="/project?id={{ .Id }}/edit" class="card-link" style="color: #3949ab">Edit</a>
+          {{ end }}
+         {{ if eq .Owner .Viewer }}
+          <a href="/project/delete?id={{ .Id }}" class="card-link" style="color: #3949ab">Delete</a>
+          {{ else }}
+          <a class="isDisabled" href="/project/delete?id={{ .Id }}" class="card-link" style="color: #3949ab">Delete</a>
+          {{ end }}
         </div>
       </div>
     </div>
@@ -23,14 +40,34 @@
    </center>
    <center>
        <div>
-       <button class="btn"  onclick="window.location.href='/index';" style="background-color: #006CFF">View Tickets in {{.ProjectName}}</button>
-                 <button class="btn"  onclick="window.location.href='/invite';" style="background-color: #006CFF">Invite Users</button>
-
+     {{ if .GrantedAccess }}   
+       <button class="btn"  onclick="window.location.href='/project/tickets?id={{.Id}}';" style="background-color: #006CFF">View Tickets in {{.ProjectName}}</button>
+       {{ else }}
+       <button class="btn disabled" onclick="window.location.href='/project/tickets?id={{.Id}}';" style="background-color: #006CFF">View Tickets in {{.ProjectName}}</button>
+       {{ end }}
+      {{ if  eq  .Owner .Viewer}}  
+      <button class="btn"  onclick="window.location.href='project/invite';" style="background-color: #006CFF">Invite Users</button>
+      {{ else }}
+       <button class="btn disabled"  onclick="window.location.href='project/invite';" style="background-color: #006CFF">Invite Users</button>
+        {{ end }}
        </div>
        </center>
     </div>
     
+ <script>
+    
+  document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('select');
+    var instances = M.FormSelect.init(elems, options);
+  });
 
+  // Or with jQuery
+
+  $(document).ready(function(){
+    $('select').formSelect();
+  });
+
+    </script>
     
 
 

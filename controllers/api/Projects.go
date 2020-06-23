@@ -54,9 +54,9 @@ func DisplayProjects(w http.ResponseWriter, r *http.Request) {
 	res := []models.Projects{}
 
 	for selDB.Next() {
-		var id int
-		var name, description, technologies string
-		err = selDB.Scan(&id, &name, &description, &technologies)
+		var id, owner int
+		var name, description, technologies, status string
+		err = selDB.Scan(&id, &name, &description, &technologies, &status, &owner)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -64,6 +64,9 @@ func DisplayProjects(w http.ResponseWriter, r *http.Request) {
 		emp.ProjectName = name
 		emp.Description = description
 		emp.Technologies = technologies
+		emp.Status = status
+		emp.Owner = owner
+
 		emp.Users = []string{}
 		projDb, err := db.Query("select users.email from users inner join users_projects on users_projects.user_id=users.uid where users_projects.project_id=?", emp.Id)
 		if err != nil {
@@ -179,25 +182,25 @@ func InsertProject(w http.ResponseWriter, r *http.Request) {
 	db := controllers.DbConn()
 	if r.Method == "POST" {
 		r.ParseForm()
-		name, description, technologies := r.PostFormValue("name"), r.PostFormValue("description"), r.PostFormValue("technologies")
-		insForm, err := db.Prepare("INSERT INTO Projects(name, description, technologies) VALUES(?, ?, ?)")
+		name, description, technologies, status := r.PostFormValue("name"), r.PostFormValue("description"), r.PostFormValue("technologies"), r.PostFormValue("status")
+		owner := claims.Uid
+		insForm, err := db.Prepare("INSERT INTO Projects(name, description, technologies, status, owner) VALUES(?, ?, ?, ?, ?)")
 		if err != nil {
 			panic(err.Error())
 		}
-		insForm.Exec(name, description, technologies)
+		insForm.Exec(name, description, technologies, status, owner)
 		var project_id int
 		fmt.Println(project_id)
 		fmt.Println(claims.Uid)
-		log.Println("INSERT: Name: " + name + " | Description: " + description + " | Technologies: " + technologies)
+		log.Println("INSERT: Name: " + name + " | Description: " + description + " | Technologies: " + technologies + " OWNER: " + string(owner) + "status :" + status)
 		teamForm, err := db.Prepare("INSERT INTO users_projects(user_id, project_id) values(?,LAST_INSERT_ID())")
 		if err != nil {
 			panic(err.Error())
 		}
 		teamForm.Exec(claims.Uid)
-
 	}
 	defer db.Close()
-	http.Redirect(w, r, "/displayprojects", 301)
+	http.Redirect(w, r, "/projects", 301)
 
 }
 
@@ -239,9 +242,9 @@ func ShowProject(w http.ResponseWriter, r *http.Request) {
 	}
 	emp := models.Projects{}
 	for selDB.Next() {
-		var id int
-		var name, description, technologies string
-		err = selDB.Scan(&id, &name, &description, &technologies)
+		var id, owner int
+		var name, description, technologies, status string
+		err = selDB.Scan(&id, &name, &description, &technologies, &status, &owner)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -249,25 +252,37 @@ func ShowProject(w http.ResponseWriter, r *http.Request) {
 		emp.ProjectName = name
 		emp.Description = description
 		emp.Technologies = technologies
+		emp.Status = status
+		emp.Owner = owner
 		controllers.Project_id = emp.Id
+		emp.Viewer = claims.Uid
+		fmt.Println(emp.Viewer)
 		fmt.Println(controllers.Project_id)
 		emp.Users = []string{}
-		projDb, err := db.Query("select users.email from users inner join users_projects on users_projects.user_id=users.uid where users_projects.project_id=?", emp.Id)
+		emp.CollabUids = []int{}
+
+		projDb, err := db.Query("select users.email, users.uid from users inner join users_projects on users_projects.user_id=users.uid where users_projects.project_id=?", emp.Id)
 		if err != nil {
 			log.Fatal(err.Error())
 		}
 		for projDb.Next() {
 			var userEmails string
-			err = projDb.Scan(&userEmails)
+			var uid int
+			err = projDb.Scan(&userEmails, &uid)
 			if err != nil {
 				log.Fatal(err.Error())
 			}
 			emp.Users = append(emp.Users, userEmails)
+			emp.CollabUids = append(emp.CollabUids, uid)
+		}
+		for i := 0; i < len(emp.CollabUids); i++ {
+			if emp.CollabUids[i] == emp.Viewer {
+				emp.GrantedAccess = true
+			}
 		}
 	}
 	controllers.Tmpl.ExecuteTemplate(w, "ShowProject", emp)
 	defer db.Close()
-
 }
 
 func EditProject(w http.ResponseWriter, r *http.Request) {
@@ -309,9 +324,9 @@ func EditProject(w http.ResponseWriter, r *http.Request) {
 	}
 	emp := models.Projects{}
 	for selDB.Next() {
-		var id int
-		var name, description, technologies string
-		err = selDB.Scan(&id, &name, &description, &technologies)
+		var id, owner int
+		var name, description, technologies, status string
+		err = selDB.Scan(&id, &name, &description, &technologies, &status, &owner)
 		if err != nil {
 			panic(err.Error())
 		}
@@ -320,6 +335,8 @@ func EditProject(w http.ResponseWriter, r *http.Request) {
 		emp.ProjectName = name
 		emp.Description = description
 		emp.Technologies = technologies
+		emp.Owner = owner
+		emp.Status = status
 	}
 	controllers.Tmpl.ExecuteTemplate(w, "EditProject", emp)
 	defer db.Close()
@@ -327,6 +344,53 @@ func EditProject(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateProject(w http.ResponseWriter, r *http.Request) {
+	c, err := r.Cookie("token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			http.Redirect(w, r, "/", 301)
+			return
+		}
+		http.Redirect(w, r, "/", 301)
+		return
+	}
+	tknStr := c.Value
+	claims := &models.Claims{}
+
+	tkn, err := jwt.ParseWithClaims(tknStr, claims, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
+	if err != nil {
+		if err == jwt.ErrSignatureInvalid {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	if !tkn.Valid {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	db := controllers.DbConn()
+	if r.Method == "POST" {
+		r.ParseForm()
+		name, description, technologies, status := r.PostFormValue("name"), r.PostFormValue("description"), r.PostFormValue("technologies"), r.PostFormValue("status")
+		fmt.Println(controllers.Project_id)
+
+		insForm, err := db.Prepare("UPDATE Projects SET name=?, description=?, technologies=?, status=? WHERE id=?")
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		insForm.Exec(name, description, technologies, status, controllers.Project_id)
+		log.Println("UPDATE: Name: " + name + " | Description: " + description + " | Technologies: " + technologies)
+
+	}
+	defer db.Close()
+	http.Redirect(w, r, "/projects", 301)
+
+}
+func Invite(w http.ResponseWriter, r *http.Request) {
 	c, err := r.Cookie("token")
 	if err != nil {
 		if err == http.ErrNoCookie {
@@ -357,23 +421,26 @@ func UpdateProject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db := controllers.DbConn()
-	if r.Method == "POST" {
-		r.ParseForm()
-		name, description, technologies := r.PostFormValue("name"), r.PostFormValue("description"), r.PostFormValue("technologies")
-		fmt.Println(controllers.Project_id)
-		insForm, err := db.Prepare("UPDATE Projects SET name=?, description=?, technologies=? WHERE id=?")
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-		insForm.Exec(name, description, technologies, controllers.Project_id)
-		log.Println("UPDATE: Name: " + name + " | Description: " + description + " | Technologies: " + technologies)
+	query := fmt.Sprintf("select email from users where uid not in (%d);", claims.Uid)
+	collabDb, err := db.Query(query)
+	if err != nil {
+		panic(err.Error())
 	}
-	defer db.Close()
-	http.Redirect(w, r, "/displayprojects", 301)
+	emp := models.Projects{}
+	res := []models.Projects{}
+	emp.Users = []string{}
+	for collabDb.Next() {
+		var emails string
+		err = collabDb.Scan(&emails)
+		if err != nil {
+			panic(err.Error())
+		}
+		emp.Users = append(emp.Users, emails)
 
-}
-func Invite(w http.ResponseWriter, r *http.Request) {
-	controllers.Tmpl.ExecuteTemplate(w, "Invite", nil)
+	}
+	res = append(res, emp)
+	fmt.Println(res)
+	controllers.Tmpl.ExecuteTemplate(w, "Invite", res)
 }
 
 func InviteUser(w http.ResponseWriter, r *http.Request) {
@@ -436,7 +503,7 @@ func InviteUser(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Inserted")
 		}
 		defer db.Close()
-		http.Redirect(w, r, "/displayprojects", 301)
+		http.Redirect(w, r, "/projects", 301)
 	}
 }
 
@@ -481,6 +548,6 @@ func DeleteProject(w http.ResponseWriter, r *http.Request) {
 	delForm.Exec(emp)
 	log.Println("DELETE")
 	defer db.Close()
-	http.Redirect(w, r, "/displayprojects", 301)
+	http.Redirect(w, r, "/projects", 301)
 
 }

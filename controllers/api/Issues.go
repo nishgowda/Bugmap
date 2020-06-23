@@ -41,41 +41,56 @@ func DisplayIssues(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	db := controllers.DbConn()
-	selDB, err := db.Query("SELECT * FROM Issues WHERE user_id=? ORDER BY id DESC", claims.Uid)
+	projects, err := db.Query("select projects.id from projects inner join users_projects on users_projects.project_id=projects.id where users_projects.user_id=?", claims.Uid)
 	if err != nil {
 		panic(err.Error())
 	}
+	allProjects := []int{}
+	var projectId int
+	for projects.Next() {
+		err = projects.Scan(&projectId)
+		if err != nil {
+			panic(err.Error())
+		}
+		allProjects = append(allProjects, projectId)
+	}
 	emp := models.Issues{}
 	res := []models.Issues{}
-	for selDB.Next() {
-		var id, user_id int
-		var name, description, priority, date, kind string
-		var projectName string
-		err = selDB.Scan(&id, &name, &description, &priority, &kind, &controllers.Project_id, &user_id, &date)
+	for i := 0; i < len(allProjects); i++ {
+		selDB, err := db.Query("SELECT * FROM Issues WHERE project_id=? ORDER BY id DESC", allProjects[i])
 		if err != nil {
 			panic(err.Error())
 		}
-		emp.Id = id
-		emp.User_id = user_id
-		emp.Name = name
-		emp.Description = description
-		emp.Priority = priority
-		emp.Date = date
-		emp.Kind = kind
-		emp.Project_id = controllers.Project_id
-
-		projDb, err := db.Query("Select name from projects where id=?", emp.Project_id)
-		if err != nil {
-			panic(err.Error())
-		}
-		for projDb.Next() {
-			err = projDb.Scan(&projectName)
+		for selDB.Next() {
+			var id, user_id int
+			var name, description, priority, date, kind string
+			var projectName string
+			err = selDB.Scan(&id, &name, &description, &priority, &kind, &controllers.Project_id, &user_id, &date)
 			if err != nil {
 				panic(err.Error())
 			}
-			emp.ProjectName = projectName
+			emp.Id = id
+			emp.User_id = user_id
+			emp.Name = name
+			emp.Description = description
+			emp.Priority = priority
+			emp.Date = date
+			emp.Kind = kind
+			emp.Project_id = controllers.Project_id
+
+			projDb, err := db.Query("Select name from projects where id=?", emp.Project_id)
+			if err != nil {
+				panic(err.Error())
+			}
+			for projDb.Next() {
+				err = projDb.Scan(&projectName)
+				if err != nil {
+					panic(err.Error())
+				}
+				emp.ProjectName = projectName
+			}
+			res = append(res, emp)
 		}
-		res = append(res, emp)
 	}
 
 	//fmt.Print("display users id is ")
@@ -346,7 +361,7 @@ func Insert(w http.ResponseWriter, r *http.Request) {
 		log.Println("INSERT: Name: " + name + " | Description: " + description + " | Priority: " + priority + " | Date: " + date + " | Kind: " + kind)
 	}
 	defer db.Close()
-	http.Redirect(w, r, "/index", 301)
+	http.Redirect(w, r, "/project/tickets", 301)
 
 }
 
@@ -394,7 +409,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 		log.Println("UPDATE: Name: " + name + " | Description: " + description + " | Priority: " + priority + " | Date: " + date + " | Kind: " + kind)
 	}
 	defer db.Close()
-	http.Redirect(w, r, "/index", 301)
+	http.Redirect(w, r, "/project/tickets", 301)
 
 }
 
@@ -438,5 +453,5 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	delForm.Exec(emp)
 	log.Println("DELETE")
 	defer db.Close()
-	http.Redirect(w, r, "/index", 301)
+	http.Redirect(w, r, "/project/tickets", 301)
 }

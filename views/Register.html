@@ -1,288 +1,62 @@
 {{ define "Register" }}
- <head>
-        <title>Bugmap</title>
-        <meta charset="UTF-8" />
-    </head>
-    <body>
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-<style>
-:root {
-  --input-padding-x: 1.5rem;
-  --input-padding-y: .75rem;
-}
+ <!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" type="text/css" href="..\static\css\styles.css" />
+     <!-- Compiled and minified CSS -->
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 
-body {
-  background:#1B4192;
+     <!-- Compiled and minified JavaScript -->
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
-}
-
-.card-signin {
-  border: 0;
-  border-radius: 1rem;
-  box-shadow: 0 0.5rem 1rem 0 rgba(0, 0, 0, 0.5);
-}
-
-.card-signin .card-title {
-  margin-bottom: 2rem;
-  font-weight: 300;
-  font-size: 1.5rem;
-}
-
-.card-signin .card-body {
-  padding: 2rem;
-
-}
-
-.form-signin {
-  width: 100%;
-}
-
-.form-signin .btn {
-  font-size: 80%;
-  border-radius: 5rem;
-  letter-spacing: .1rem;
-  font-weight: bold;
-  padding: 1rem;
-  transition: all 0.2s;
-}
-
-.form-label-group {
-  position: relative;
-  margin-bottom: 1rem;
-}
-
-.form-label-group input {
-  height: auto;
-  border-radius: 2rem;
-}
-
-.form-label-group>input,
-.form-label-group>label {
-  padding: var(--input-padding-y) var(--input-padding-x);
-}
-form .field input{
-  width: 100%;
-  height: 100%;
-  border: 1px solid lightgrey;
-  border-radius: 5px;
-  padding-left: 15px;
-  font-size: 18px;
-  outline: none;
-}
-form .field .icons{
-  position: absolute;
-  right: 15px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-.field .icons span{
-  height: 25px;
-  width: 25px;
-  border: 2px solid;
-  border-radius: 50%;
-  line-height: 25px;
-  display: none;
-}
-.field .icons span.icon1{
-  color: #e74c3c;
-  border-color: #e74c3c;
-}
-.field .icons span.icon2{
-  color: #27ae60;
-  border-color: #27ae60;
-}
-form .error-text{
-  position: relative;
-  margin: 15px 0 -5px 0;
-  background: #e74c3c;
-  color: #fceae8;
-  font-size: 18px;
-  border-radius: 5px;
-  user-select: none;
-  display: none;
-}
-form .error-text:before{
-  position: absolute;
-  content: '';
-  height: 15px;
-  width: 15px;
-  background: #e74c3c;
-  right: 20px;
-  top: -7px;
-  transform: rotate(45deg);
-}
-.form-label-group>label {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: block;
-  width: 100%;
-  margin-bottom: 0;
-  /* Override default `<label>` margin */
-  line-height: 1.5;
-  color: #495057;
-  border: 1px solid transparent;
-  border-radius: .25rem;
-  transition: all .1s ease-in-out;
-}
-
-.form-label-group input::-webkit-input-placeholder {
-  color: transparent;
-}
-
-.form-label-group input:-ms-input-placeholder {
-  color: transparent;
-}
-
-.form-label-group input::-ms-input-placeholder {
-  color: transparent;
-}
-
-.form-label-group input::-moz-placeholder {
-  color: transparent;
-}
-
-.form-label-group input::placeholder {
-  color: transparent;
-}
-
-.form-label-group input:not(:placeholder-shown) {
-  padding-top: calc(var(--input-padding-y) + var(--input-padding-y) * (2 / 3));
-  padding-bottom: calc(var(--input-padding-y) / 3);
-}
-
-.form-label-group input:not(:placeholder-shown)~label {
-  padding-top: calc(var(--input-padding-y) / 3);
-  padding-bottom: calc(var(--input-padding-y) / 3);
-  font-size: 12px;
-  color: #777;
-}
-
-.btn-google {
-  color: white;
-  background-color: #ea4335;
-}
-
-.btn-github {
-  color: white;
-  background-color: #6cc644;
-}
-
-/* Fallback for Edge
--------------------------------------------------- */
-
-@supports (-ms-ime-align: auto) {
-  .form-label-group>label {
-    display: none;
-  }
-  .form-label-group input::-ms-input-placeholder {
-    color: #777;
-  }
-}
-
-/* Fallback for IE
--------------------------------------------------- */
-
-@media all and (-ms-high-contrast: none),
-(-ms-high-contrast: active) {
-  .form-label-group>label {
-    display: none;
-  }
-  .form-label-group input:-ms-input-placeholder {
-    color: #777;
-  }
-}
-</style>
-
-
-<body>
-  <div class="container">
-    <div class="row">
-      <div class="col-sm-9 col-md-7 col-lg-5 mx-auto">
-        <div class="card card-signin my-5">
-          <div class="card-body">
-            <h5 class="card-title text-center">Sign Up</h5>
-            <form class="form-signin" method="POST" action="register">
-              <div class="form-label-group">
-                <input type="text" id="inputUsername" class="form-control" name="username" placeholder="Username" required>
-                     <label for="inputUsername">Username</label>
-              </div>
-               <div class="form-label-group">
-                <input type="text" id="firstName" class="form-control" name="first_name" placeholder="First Name" required>
-                  <label for="firstName">First Name</label>
-              </div>
-               <div class="form-label-group">
-                <input type="text" id="lastName" class="form-control" name="last_name" placeholder="Last Name" required>
-                  <label for="lastName">Last Name</label>
-              </div>         
-              <div class="form-label-group">
-                      <input type="text" onkeyup="check()" id="email" name="email"  placeholder="Email">
-                      <div class="icons">
-                        <span class="icon1 fas fa-exclamation"></span>
-                        <span class="icon2 fas fa-check"></span>
-                      </div>
-            </div>
-            <div class="error-text">
-            Please Enter Valid Email Address
-            </div>
-
-              <div class="form-label-group">
-                <input type="password" id="inputPassword" class="form-control" name="password" placeholder="Password" required>
-                  <label for="inputPassword">Password</label>
-              </div>
-
-               <input type="submit" class="btn btn-lg btn-primary btn-block text-uppercase" value="Sign Up"/>
-              <hr class="my-4">
-              <a class="btn btn-lg btn-google btn-block text-uppercase" href="/googlelogin" role="button"><i class="fab fa-google mr-2"></i> Sign Up with Google</a>
-              <a class="btn btn-lg btn-github btn-block text-uppercase"  href="/githublogin" role="button"><i class="fab fa-github-f mr-2"></i> Sign Up with Github</a>
-                             <div >
-                             <center>
-                <a href="/">Have an account? Click to login!</a>
-                  <center>
-              </div>
-            </form>
-          </div>
+     <title>Bugmap</title>
+  </head>
+  <body style="background-color: #f9f9f9">
+    <div class="register-div">
+      <div class="row center-align">
+        <h5>Sign in</h5>
+      </div>
+      <form method="POST" action="register">
+      <div class="row">
+        <div class="input-field col s12">
+          <input id="username" type="text" name="username" class="validate" required>
+          <label for="username">Username</label>
         </div>
       </div>
+          <div class="row">
+        <div class="input-field col s12">
+          <input id="first_name" type="text" name="first_name" class="validate" required>
+          <label for="first_name">First Name</label>
+        </div>
+            <div class="input-field col s12">
+          <input id="last_name" type="text" name="last_name" class="validate" required>
+          <label for="last_name">Last Name</label>
+        </div>
+      </div>
+       <div class="row">
+        <div class="input-field col s12">
+          <input id="email" type="email" name="email" class="validate" required>
+          <label for="email">Email</label>
+        </div>
+      </div>
+      <div class="row">
+        <div class="input-field col s12">
+          <input id="password_input" type="password" name="password" class="validate" required>
+          <label for="password_input">Password</label>
+        </div>
+      </div>
+
+      <div class="row"></div>
+      <div class="row">
+        <div class="col s6"><a href="/">Login</a></div>
+        <div class="col s6 right-align"><a class="waves-effect waves-light btn" style="background-color: #006CFF">Register</a></div>
+      </div>
     </div>
-  </div>
-</body>
-<script>
-      const email = document.querySelector("#email");
-      const icon1 = document.querySelector(".icon1");
-      const icon2 = document.querySelector(".icon2");
-      const error = document.querySelector(".error-text");
-      const btn = document.querySelector("button");
-      let regExp = /^[^ ]+@[^ ]+\.[a-z]{2,3}$/;
-      function check(){
-        if(email.value.match(regExp)){
-          email.style.borderColor = "#27ae60";
-          email.style.background = "#eafaf1";
-          icon1.style.display = "none";
-          icon2.style.display = "block";
-          error.style.display = "none";
-          btn.style.display = "block";
-        }else{
-          email.style.borderColor = "#e74c3c";
-          email.style.background = "#fceae9";
-          icon1.style.display = "block";
-          icon2.style.display = "none";
-          error.style.display = "block";
-          btn.style.display = "none";
-        }
-        if(email.value == ""){
-          email.style.borderColor = "lightgrey";
-          email.style.background = "#fff";
-          icon1.style.display = "none";
-          icon2.style.display = "none";
-          error.style.display = "none";
-          btn.style.display = "none";
-        }
-      }
-    </script>
+  </body>
+</html>
+
+
 
   {{ template "Footer" }}
 {{ end }}

@@ -15,7 +15,7 @@
           {{ end }}
         </div>
         <div class="card-action">
-          <a href="/displayprojects" style="color: #3949ab">View</a>
+          <a href="/projects" style="color: #3949ab">View</a>
         </div>
       </div>
     </div>
@@ -28,7 +28,7 @@
           {{ end }}
         </div>
         <div class="card-action">
-          <a href="/bugs" style="color: #3949ab">View</a>
+          <a href="/tickets" style="color: #3949ab">View</a>
         </div>
       </div>
     </div>
@@ -38,6 +38,7 @@
       <div class="col s12 m6">
    <div class="card">
     <div class="card-content">
+    <span class="card-title">Pending Urgencies</span>
       <p> <canvas id="myChart" style="height: 300px; width: 100%;"></canvas></p>
     </div>
     </div>
@@ -45,6 +46,7 @@
         <div class="col s12 m6">
        <div class="card">
     <div class="card-content">
+      <span class="card-title">Tickets per Type</span>
       <p> <canvas id="bar-chart" style="height: 300px; width: 100%;"></canvas></p>
     </div>
     </div>
@@ -54,6 +56,7 @@
  <div class="col s12 m6">
     <div class="card">
     <div class="card-content">
+      <span class="card-title">Your Activity</span>
       <p> <canvas id="line-chart" style="height: 300px; width: 100%;"></canvas></p>
     </div>
     </div>
@@ -79,7 +82,7 @@ var chart = new Chart(ctx, {
     options: {
       title: {
         display: true,
-        text: 'Pending Urgencies'
+        text: ''
       }
     }
 });
@@ -104,7 +107,7 @@ new Chart(document.getElementById("bar-chart"), {
       legend: { display: false },
       title: {
         display: true,
-        text: "Number of Tickets per Type"
+        text: ""
       }
     }
 });
@@ -142,7 +145,7 @@ new Chart(document.getElementById("line-chart"), {
   options: {
     title: {
       display: true,
-      text: 'Your Activity'
+      text: ''
     }
   }
 });

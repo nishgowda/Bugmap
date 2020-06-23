@@ -6,7 +6,7 @@
     <div class="container">
    <h2>Edit Project</h2>  
      <div class="row">
-    <form class="col s12" method="POST" action="updateproject">
+    <form class="col s12" method="POST" action="update">
       <div class="row">
         <div class="input-field col s12">
           <input placeholder="Name" id="first_name" type="text" class="validate" name="name" value= "{{.ProjectName}}"  required >
@@ -26,6 +26,16 @@
         </div>
       </div>
 
+ <div class="row">
+        <div class="input-field col s12">
+    <select name="status" required>
+      <option value="" disabled selected>Select a status</option>
+      <option value="Public">Public</option>
+      <option value="Private">Private</option>
+    </select>
+    <label>Status</label>
+  </div>
+    </div>
     <div>
         <div>
   <input type="submit" class="btn" style="background-color: #1B4192" value="Save" />
@@ -38,5 +48,20 @@
        
     <div>
  
+  <script>
+    
+  document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('select');
+    var instances = M.FormSelect.init(elems, options);
+  });
+
+  // Or with jQuery
+
+  $(document).ready(function(){
+    $('select').formSelect();
+  });
+
+    </script>
+
   {{ template "Footer" }}
 {{ end }}

@@ -11,6 +11,7 @@ type Users struct {
 	Projects      []string
 	Collaborators []string
 	CollabUids    []int
+	SessionId     []int
 }
 
 type Claims struct {

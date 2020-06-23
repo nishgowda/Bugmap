@@ -7,12 +7,28 @@
    <h2>Invite a user to this project</h2>  
      <div class="row">
     <form class="col s12" method="POST" action="inviteuser">
-      <div class="row">
-        <div class="input-field col s12">
-          <input placeholder="Email" id="email" type="text" class="validate" name="email" required>
-          <label for="email">Email</label>
-        </div>
-        </div>
+  <div class="row">
+          <div class="input-field col s12">
+    <select id="email" name="email" required>
+  <option value="" disabled selected>Invite a User</option>
+    </select>
+      <label>Share</label>
+      <script>
+var select = document.getElementById("email");
+{{ range .}}
+ var users = [ {{range  $index, $element := .Users}} {{if $index}}, {{end}} {{$element}} {{ end }}]
+                for(var i = 0; i < users.length; i++) {
+                    var opt = users[i];
+                    var el = document.createElement("option");
+                    el.textContent = opt;
+                    el.value = opt;
+                    select.appendChild(el);
+                }
+                {{ end }}
+
+</script>
+  </div>
+  </div>
       
     <div>
         <div>
@@ -25,5 +41,24 @@
     </center>
        
     <div>
+
+
+<script>
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('select');
+    var instances = M.FormSelect.init(elems, options);
+  });
+
+  // Or with jQuery
+
+  $(document).ready(function(){
+    $('select').formSelect();
+  });
+
+
+</script>
+
+
   {{ template "Footer" }}
 {{ end }}
